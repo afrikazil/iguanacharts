@@ -1,5 +1,12 @@
-export { Chart, createChart, DEFAULT_COLORS } from './chart.js';
-export type { ChartColors, ChartEvents, ChartOptions, CrosshairPayload, PaneOptions } from './chart.js';
+export { Chart, createChart, DARK_COLORS, LIGHT_COLORS, THEMES } from './chart.js';
+export type {
+    ChartColors,
+    ChartEvents,
+    ChartOptions,
+    CrosshairPayload,
+    PaneOptions,
+    ThemeName,
+} from './chart.js';
 export { BarSeries } from './model/bars.js';
 export type { Bar, MinMax } from './model/bars.js';
 export { IndicatorSeries } from './model/indicator-series.js';
@@ -27,7 +34,43 @@ export type { BuildContext, DataChange, SeriesSource } from './series/source.js'
 export type { CandleStyle } from './render/candle-renderer.js';
 export { attachPointerInput } from './input/pointer.js';
 export type { PointerHandlers } from './input/pointer.js';
-export { IncrementalIndicator } from './indicators/indicator.js';
+export {
+    BarWindow,
+    IncrementalIndicator,
+    WindowIndicator,
+} from './indicators/indicator.js';
 export type { Indicator } from './indicators/indicator.js';
+export { NumberWindow } from './indicators/number-window.js';
+export { EmaCore } from './indicators/ema-core.js';
+export type { EmaSeedMode, EmaSnapshot } from './indicators/ema-core.js';
 export { Sma } from './indicators/sma.js';
 export { Rsi } from './indicators/rsi.js';
+export { MedPrice, TrueRange, TypPrice, WclPrice, priceOf, trueRange } from './indicators/price.js';
+export type { PriceSource } from './indicators/price.js';
+export {
+    Ema,
+    MaType,
+    Tema,
+    Trima,
+    Wma,
+    Zlema,
+    createMovingAverage,
+} from './indicators/moving-averages.js';
+export type { MaTypeValue } from './indicators/moving-averages.js';
+export {
+    Atr,
+    Bbands,
+    Chv,
+    Dpo,
+    Envelopes,
+    PriceChannel,
+    Roc,
+    StdDev,
+    Variance,
+} from './indicators/volatility.js';
+export type { BbandsOptions } from './indicators/volatility.js';
+export { Aroon, Cci, Macd, Stoch, WilliamsR } from './indicators/oscillators.js';
+export type { MacdOptions, StochOptions } from './indicators/oscillators.js';
+export { Adx, MinusDi, MinusDm, PlusDi, PlusDm, Sar } from './indicators/directional.js';
+export { Ad, Adosc, Mfi, Obv, Vpt } from './indicators/volume.js';
+export { ElderRay } from './indicators/elder-ray.js';

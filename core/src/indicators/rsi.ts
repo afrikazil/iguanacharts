@@ -1,5 +1,5 @@
 import type { Bar } from '../model/bars.js';
-import { IncrementalIndicator } from './indicator.js';
+import { IncrementalIndicator, requirePositiveInt } from './indicator.js';
 
 interface RsiState {
     prevClose: number;
@@ -18,6 +18,7 @@ interface RsiState {
  */
 export class Rsi extends IncrementalIndicator<RsiState> {
     readonly name: string;
+    readonly outputs = ['RSI'] as const;
 
     private prevClose = 0;
     private hasPrev = false;
@@ -29,9 +30,7 @@ export class Rsi extends IncrementalIndicator<RsiState> {
 
     constructor(private readonly period = 14) {
         super();
-        if (!Number.isInteger(period) || period < 1) {
-            throw new RangeError(`период RSI должен быть целым >= 1, получено ${period}`);
-        }
+        requirePositiveInt(period, 'период RSI');
         this.name = `RSI(${period})`;
     }
 
@@ -67,11 +66,12 @@ export class Rsi extends IncrementalIndicator<RsiState> {
         this.avgLoss = state.avgLoss;
     }
 
-    protected step(bar: Bar): number | undefined {
+    protected step(bar: Bar, out: Float64Array): void {
         if (!this.hasPrev) {
             this.prevClose = bar.close;
             this.hasPrev = true;
-            return undefined;
+            out[0] = NaN;
+            return;
         }
 
         const change = bar.close - this.prevClose;
@@ -83,7 +83,8 @@ export class Rsi extends IncrementalIndicator<RsiState> {
         if (this.changes < this.period) {
             this.sumGain += gain;
             this.sumLoss += loss;
-            return undefined;
+            out[0] = NaN;
+            return;
         }
 
         if (this.changes === this.period) {
@@ -96,7 +97,11 @@ export class Rsi extends IncrementalIndicator<RsiState> {
             this.avgLoss = (this.avgLoss * (this.period - 1) + loss) / this.period;
         }
 
-        if (this.avgLoss === 0) return this.avgGain === 0 ? 50 : 100;
-        return 100 - 100 / (1 + this.avgGain / this.avgLoss);
+        out[0] =
+            this.avgLoss === 0
+                ? this.avgGain === 0
+                    ? 50
+                    : 100
+                : 100 - 100 / (1 + this.avgGain / this.avgLoss);
     }
 }

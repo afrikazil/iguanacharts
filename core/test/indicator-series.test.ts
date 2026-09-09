@@ -9,7 +9,7 @@ describe('IndicatorSeries', () => {
     it('recompute выравнивает значения по индексам баров', () => {
         const bars = new BarSeries();
         bars.setData(randomWalk(100, 2));
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         series.recompute(bars, new Sma(10));
 
         expect(series.length).toBe(100);
@@ -20,13 +20,13 @@ describe('IndicatorSeries', () => {
 
     it('пошаговое наполнение совпадает с полным пересчётом', () => {
         const all = randomWalk(200, 6);
-        const expected = new IndicatorSeries();
+        const expected = new IndicatorSeries(1);
         const expectedBars = new BarSeries();
         expectedBars.setData(all);
         expected.recompute(expectedBars, new Rsi(14));
 
         const bars = new BarSeries();
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         const indicator = new Rsi(14);
         indicator.reset();
 
@@ -46,7 +46,7 @@ describe('IndicatorSeries', () => {
     it('updateLast переписывает последнее значение, не сдвигая ряд', () => {
         const all = randomWalk(60, 8);
         const bars = new BarSeries();
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         const indicator = new Sma(5);
         indicator.reset();
 
@@ -73,7 +73,7 @@ describe('IndicatorSeries', () => {
         // обнаруживает разрыв и пересчитывает всё.
         const bars = new BarSeries();
         bars.setData(randomWalk(20, 3));
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         const indicator = new Sma(5);
         series.recompute(bars, indicator);
 
@@ -87,7 +87,7 @@ describe('IndicatorSeries', () => {
     it('minMaxInRange пропускает период разогрева', () => {
         const bars = new BarSeries();
         bars.setData(randomWalk(50, 12));
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         series.recompute(bars, new Sma(10));
 
         const range = series.minMaxInRange(0, 49);

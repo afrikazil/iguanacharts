@@ -1,4 +1,26 @@
-import { Rsi, createChart, type Bar } from '../src/index.js';
+import {
+    Adx,
+    Aroon,
+    Atr,
+    Bbands,
+    Cci,
+    ElderRay,
+    Ema,
+    Envelopes,
+    Macd,
+    Mfi,
+    Obv,
+    PriceChannel,
+    Rsi,
+    Sar,
+    Sma,
+    Stoch,
+    WilliamsR,
+    createChart,
+    type Bar,
+    type Indicator,
+    type ThemeName,
+} from '../src/index.js';
 
 const chartHost = document.querySelector<HTMLDivElement>('#chart')!;
 const stats = document.querySelector<HTMLDivElement>('#stats')!;
@@ -67,6 +89,34 @@ barCountSelect.addEventListener('change', load);
 modeSelect.addEventListener('change', () => {
     chart.setPriceScaleMode(modeSelect.value as 'linear' | 'logarithmic' | 'percentage');
 });
+const themeSelect = document.querySelector<HTMLSelectElement>('#theme')!;
+themeSelect.addEventListener('change', () => {
+    if (themeSelect.value === 'custom') {
+        // Своя схема поверх текущей — ровно так её задаёт внешний код.
+        chart.applyOptions({
+            colors: {
+                background: '#101820',
+                grid: '#1c2a33',
+                text: '#7fa6b8',
+                upColor: '#00b8a9',
+                downColor: '#f6416c',
+                upWickColor: '#00b8a9',
+                downWickColor: '#f6416c',
+                volumeUpColor: 'rgba(0, 184, 169, 0.4)',
+                volumeDownColor: 'rgba(246, 65, 108, 0.4)',
+                indicatorLine: '#ffde7d',
+                indicatorLevel: '#1c2a33',
+            },
+        });
+        document.body.style.background = '#0a1015';
+        return;
+    }
+    const theme = themeSelect.value as ThemeName;
+    chart.setTheme(theme);
+    document.body.style.background = theme === 'light' ? '#f4f6f8' : '#0f1117';
+    document.body.style.color = theme === 'light' ? '#2a2e39' : '#d6d9e0';
+});
+
 document.querySelector('#fit')!.addEventListener('click', () => chart.fitContent());
 
 // Пейны добавляются по одному контракту: объём и индикатор различаются только
@@ -79,17 +129,79 @@ document.querySelector('#volume')!.addEventListener('click', (event) => {
     (event.currentTarget as HTMLButtonElement).disabled = true;
 });
 
-let rsiAdded = false;
-document.querySelector('#rsi')!.addEventListener('click', (event) => {
-    if (rsiAdded) return;
-    rsiAdded = true;
-    chart.addIndicatorPane(new Rsi(14), {
-        range: { min: 0, max: 100 },
-        levels: [30, 70],
-        color: '#c9a227',
-        precision: 1,
-    });
-    (event.currentTarget as HTMLButtonElement).disabled = true;
+// Наложения на цену: полосы, конверты, каналы и средние живут в координатах
+// цены, поэтому идут в главный пейн, а не в отдельный.
+const overlays: Record<string, () => { indicator: Indicator; channelColors?: string[] }> = {
+    sma: () => ({ indicator: new Sma(30) }),
+    ema: () => ({ indicator: new Ema(30) }),
+    bbands: () => ({
+        indicator: new Bbands({ period: 20 }),
+        channelColors: ['#8e9aaf', '#8e9aaf', '#c9a227'],
+    }),
+    env: () => ({ indicator: new Envelopes(20, 1), channelColors: ['#8e9aaf', '#8e9aaf'] }),
+    pch: () => ({ indicator: new PriceChannel(13, 13), channelColors: ['#8e9aaf', '#8e9aaf'] }),
+    sar: () => ({ indicator: new Sar() }),
+};
+
+const panes: Record<string, () => { indicator: Indicator; options?: Record<string, unknown> }> = {
+    rsi: () => ({
+        indicator: new Rsi(14),
+        options: { range: { min: 0, max: 100 }, levels: [30, 70], precision: 1 },
+    }),
+    macd: () => ({
+        indicator: new Macd(),
+        options: { channelColors: ['#2196f3', '#ef5350', '#8e9aaf'], precision: 3 },
+    }),
+    stoch: () => ({
+        indicator: new Stoch(),
+        options: {
+            range: { min: 0, max: 100 },
+            levels: [20, 80],
+            channelColors: ['#2196f3', '#ef5350'],
+            precision: 1,
+        },
+    }),
+    adx: () => ({ indicator: new Adx(14), options: { levels: [20, 40], precision: 1 } }),
+    atr: () => ({ indicator: new Atr(14), options: { precision: 3 } }),
+    cci: () => ({ indicator: new Cci(14), options: { levels: [-100, 100], precision: 1 } }),
+    willr: () => ({
+        indicator: new WilliamsR(14),
+        options: { range: { min: -100, max: 0 }, levels: [-80, -20], precision: 1 },
+    }),
+    aroon: () => ({
+        indicator: new Aroon(14),
+        options: {
+            range: { min: 0, max: 100 },
+            levels: [30, 70],
+            channelColors: ['#ef5350', '#26a69a'],
+            precision: 0,
+        },
+    }),
+    mfi: () => ({
+        indicator: new Mfi(14),
+        options: { range: { min: 0, max: 100 }, levels: [20, 80], precision: 1 },
+    }),
+    obv: () => ({ indicator: new Obv(), options: { precision: 0 } }),
+    eldr: () => ({
+        indicator: new ElderRay(13),
+        options: { channelColors: ['#2196f3', '#ef5350', '#c9a227', '#8e9aaf'], precision: 3 },
+    }),
+};
+
+const overlaySelect = document.querySelector<HTMLSelectElement>('#overlay')!;
+overlaySelect.addEventListener('change', () => {
+    const make = overlays[overlaySelect.value];
+    if (make === undefined) return;
+    const { indicator, channelColors } = make();
+    chart.addIndicatorOverlay(indicator, channelColors === undefined ? {} : { channelColors });
+});
+
+const paneSelect = document.querySelector<HTMLSelectElement>('#pane')!;
+paneSelect.addEventListener('change', () => {
+    const make = panes[paneSelect.value];
+    if (make === undefined) return;
+    const { indicator, options } = make();
+    chart.addIndicatorPane(indicator, options ?? {});
 });
 
 // Поток тиков: проверяем, что обновление последнего бара не стоит как полная

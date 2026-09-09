@@ -27,6 +27,7 @@
     "uikit": "^2.27.4"
   },
   "devDependencies": {
+    "@types/node": "^26.5.0",
     "esbuild": "^0.28.2",
     "less": "^4.9.1",
     "lightningcss": "^1.33.0",

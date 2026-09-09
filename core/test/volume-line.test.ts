@@ -79,12 +79,13 @@ describe('buildHistogramGeometry', () => {
 describe('buildLineGeometry', () => {
     it('период разогрева даёт NaN — линия рвётся, а не тянется к нулю', () => {
         const { bars, timeScale, priceScale } = setup();
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         series.recompute(bars, new Sma(10));
-        priceScale.autoScale(...Object.values(series.minMaxInRange(0, 199)) as [number, number]);
+        const { min, max } = series.minMaxInRange(0, 199);
+        priceScale.autoScale(min, max);
 
         const geometry = new LineGeometry();
-        buildLineGeometry(series, 0, 50, timeScale, priceScale, geometry);
+        buildLineGeometry(series, 0, 0, 50, timeScale, priceScale, geometry);
 
         expect(geometry.y[0]!).toBeNaN();
         expect(geometry.y[8]!).toBeNaN();
@@ -93,11 +94,11 @@ describe('buildLineGeometry', () => {
 
     it('x совпадает с позицией бара на оси времени', () => {
         const { bars, timeScale, priceScale } = setup();
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         series.recompute(bars, new Sma(3));
 
         const geometry = new LineGeometry();
-        buildLineGeometry(series, 20, 40, timeScale, priceScale, geometry);
+        buildLineGeometry(series, 0, 20, 40, timeScale, priceScale, geometry);
 
         expect(geometry.x[0]!).toBeCloseTo(timeScale.xAt(20), 4);
         expect(geometry.x[20]!).toBeCloseTo(timeScale.xAt(40), 4);
@@ -105,13 +106,13 @@ describe('buildLineGeometry', () => {
 
     it('буферы переиспользуются между кадрами', () => {
         const { bars, timeScale, priceScale } = setup();
-        const series = new IndicatorSeries();
+        const series = new IndicatorSeries(1);
         series.recompute(bars, new Sma(3));
 
         const geometry = new LineGeometry();
-        buildLineGeometry(series, 0, 99, timeScale, priceScale, geometry);
+        buildLineGeometry(series, 0, 0, 99, timeScale, priceScale, geometry);
         const buffer = geometry.y;
-        buildLineGeometry(series, 0, 99, timeScale, priceScale, geometry);
+        buildLineGeometry(series, 0, 0, 99, timeScale, priceScale, geometry);
         expect(geometry.y).toBe(buffer);
     });
 });

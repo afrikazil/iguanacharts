@@ -23,6 +23,7 @@ export class LineGeometry {
 
 export function buildLineGeometry(
     series: IndicatorSeries,
+    channel: number,
     from: number,
     to: number,
     timeScale: TimeScale,
@@ -38,7 +39,7 @@ export function buildLineGeometry(
     out.ensureCapacity(count);
     for (let i = 0; i < count; i += 1) {
         const index = from + i;
-        const value = series.valueAt(index);
+        const value = series.valueAt(index, channel);
         out.x[i] = timeScale.xAt(index);
         out.y[i] = Number.isNaN(value) ? NaN : priceScale.yAt(value);
     }

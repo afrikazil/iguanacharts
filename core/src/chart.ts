@@ -27,7 +27,13 @@ export interface ChartColors extends CandleStyle {
     separator: string;
     volumeUpColor: string;
     volumeDownColor: string;
+    /** Цвет линии индикатора по умолчанию — если вызывающий не задал свой. */
+    indicatorLine: string;
+    /** Цвет опорных уровней осцилляторов. */
+    indicatorLevel: string;
 }
+
+export type ThemeName = 'light' | 'dark';
 
 export interface PaneOptions {
     /** Доля свободной высоты. */
@@ -74,11 +80,16 @@ export interface ChartEvents extends Record<string, unknown> {
     crosshairLeave: undefined;
 }
 
-export const DEFAULT_COLORS: ChartColors = {
-    background: '#161a25',
-    grid: '#232733',
-    text: '#8b90a0',
-    crosshair: '#5c6272',
+/**
+ * Палитры унаследованы от тем старой библиотеки (White и Dark в
+ * jquery.iguana-chart.js), чтобы график не менял вид при переходе на новое
+ * ядро: те же фон, сетка и цвета свечей.
+ */
+export const DARK_COLORS: ChartColors = {
+    background: '#1e222d',
+    grid: '#2a2e39',
+    text: '#787b86',
+    crosshair: '#787b86',
     axisLabelBackground: '#2a2e39',
     axisLabelText: '#d6d9e0',
     separator: '#2a2e39',
@@ -86,12 +97,38 @@ export const DEFAULT_COLORS: ChartColors = {
     downColor: '#ef5350',
     upWickColor: '#26a69a',
     downWickColor: '#ef5350',
-    volumeUpColor: 'rgba(38, 166, 154, 0.5)',
-    volumeDownColor: 'rgba(239, 83, 80, 0.5)',
+    volumeUpColor: 'rgba(38, 166, 154, 0.45)',
+    volumeDownColor: 'rgba(239, 83, 80, 0.45)',
+    indicatorLine: '#2196f3',
+    indicatorLevel: '#2a2e39',
+};
+
+export const LIGHT_COLORS: ChartColors = {
+    background: '#ffffff',
+    grid: '#cccccc',
+    text: '#595959',
+    crosshair: '#999999',
+    axisLabelBackground: '#595959',
+    axisLabelText: '#ffffff',
+    separator: '#cccccc',
+    upColor: '#66b85c',
+    downColor: '#c75757',
+    upWickColor: '#595959',
+    downWickColor: '#595959',
+    volumeUpColor: 'rgba(102, 184, 92, 0.45)',
+    volumeDownColor: 'rgba(199, 87, 87, 0.45)',
+    indicatorLine: '#1565c0',
+    indicatorLevel: '#dddddd',
+};
+
+/** Встроенные схемы. Свои задаются через applyOptions({ colors }). */
+export const THEMES: Record<ThemeName, ChartColors> = {
+    light: LIGHT_COLORS,
+    dark: DARK_COLORS,
 };
 
 const DEFAULT_OPTIONS: ChartOptions = {
-    colors: DEFAULT_COLORS,
+    colors: DARK_COLORS,
     priceScaleWidth: 64,
     timeScaleHeight: 22,
     separatorHeight: 6,
@@ -158,7 +195,7 @@ export class Chart {
         this.options = {
             ...DEFAULT_OPTIONS,
             ...options,
-            colors: { ...DEFAULT_COLORS, ...options.colors },
+            colors: { ...DARK_COLORS, ...options.colors },
         };
 
         this.host = container.ownerDocument.createElement('div');
@@ -266,12 +303,64 @@ export class Chart {
         return source;
     }
 
+    /**
+     * Индикатор поверх цены, в главном пейне.
+     *
+     * Средние, полосы Боллинджера, конверты, ценовой канал и SAR живут в
+     * координатах цены, и выносить их в отдельный пейн бессмысленно —
+     * автоскейл главного пейна уже объединяет диапазоны всех своих источников.
+     */
+    addIndicatorOverlay(
+        indicator: Indicator,
+        options: Partial<IndicatorSourceOptions> = {},
+    ): IndicatorSource {
+        const source = new IndicatorSource(
+            indicator,
+            {
+                color: this.options.colors.indicatorLine,
+                levelColor: this.options.colors.indicatorLevel,
+                ...options,
+            },
+            options.color !== undefined,
+        );
+        this.panes[0]?.sources.push(source);
+        source.sync(this.bars, 'reset');
+        this.frameLoop.invalidate(Invalidation.Full);
+        return source;
+    }
+
+    /** Убирает ранее добавленный источник из любого пейна. */
+    removeSource(source: SeriesSource): boolean {
+        for (let i = this.panes.length - 1; i >= 0; i -= 1) {
+            const pane = this.panes[i]!;
+            const index = pane.sources.indexOf(source);
+            if (index === -1) continue;
+            pane.sources.splice(index, 1);
+            // Опустевший неглавный пейн убираем вместе с источником.
+            if (pane.sources.length === 0 && i > 0) {
+                this.panes.splice(i, 1);
+                this.relayout();
+            }
+            this.frameLoop.invalidate(Invalidation.Full);
+            return true;
+        }
+        return false;
+    }
+
     /** Пейн с линией индикатора. */
     addIndicatorPane(
         indicator: Indicator,
         options: Partial<PaneOptions & IndicatorSourceOptions> = {},
     ): IndicatorSource {
-        const source = new IndicatorSource(indicator, options);
+        const source = new IndicatorSource(
+            indicator,
+            {
+                color: this.options.colors.indicatorLine,
+                levelColor: this.options.colors.indicatorLevel,
+                ...options,
+            },
+            options.color !== undefined,
+        );
         this.addPane(
             [source],
             {
@@ -297,6 +386,44 @@ export class Chart {
 
     paneCount(): number {
         return this.panes.length;
+    }
+
+    /**
+     * Смена палитры на живом графике. Тема в tradernet переключается без
+     * перемонтирования компонента, поэтому цвета обязаны меняться на месте.
+     * Геометрия при этом не меняется — инвалидация уровня Light.
+     */
+    setTheme(theme: ThemeName): void {
+        this.applyColors(THEMES[theme]);
+    }
+
+    /** Частичное переопределение палитры поверх текущей. */
+    applyOptions(patch: { colors?: Partial<ChartColors> }): void {
+        if (patch.colors !== undefined) {
+            this.applyColors({ ...this.options.colors, ...patch.colors });
+        }
+    }
+
+    colors(): ChartColors {
+        return { ...this.options.colors };
+    }
+
+    private applyColors(colors: ChartColors): void {
+        this.options.colors = colors;
+        this.candleSource.setStyle(colors);
+        for (const pane of this.panes) {
+            for (const source of pane.sources) {
+                if (source instanceof VolumeSource) {
+                    source.setStyle({
+                        upColor: colors.volumeUpColor,
+                        downColor: colors.volumeDownColor,
+                    });
+                } else if (source instanceof IndicatorSource) {
+                    source.applyTheme(colors.indicatorLine, colors.indicatorLevel);
+                }
+            }
+        }
+        this.frameLoop.invalidate(Invalidation.Light);
     }
 
     setPriceScaleMode(mode: PriceScaleMode): void {
