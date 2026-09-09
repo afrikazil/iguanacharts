@@ -4,9 +4,14 @@
   "description": "",
   "main": "dist/iguanachart.js",
   "scripts": {
-    "example": "./node_modules/http-server/bin/http-server -a127.0.0.1 -p8000",
-    "build": "gulp && node ./minify.js",
-    "dev": "gulp dev",
+    "build": "npm run build:legacy && npm run build:core",
+    "build:legacy": "node build.mjs",
+    "verify:legacy": "node build.mjs --verify",
+    "build:core": "vite build",
+    "dev": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p core/tsconfig.json --noEmit",
     "nt_release": "npm run build && cp -R ./dist/* ../iguanachart"
   },
   "author": "",
@@ -22,12 +27,11 @@
     "uikit": "^2.27.4"
   },
   "devDependencies": {
-    "@node-minify/core": "^8.0.6",
-    "@node-minify/cssnano": "^8.0.6",
-    "@node-minify/uglify-js": "^8.0.6",
-    "gulp": "4.0.2",
-    "gulp-concat": "^2.6.0",
-    "gulp-less": "^3.4.0",
-    "gulp-webserver": "0.9.1"
+    "esbuild": "^0.28.2",
+    "less": "^4.9.1",
+    "lightningcss": "^1.33.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
   }
 }
