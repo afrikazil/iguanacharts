@@ -94,9 +94,14 @@ export class BarSeries {
     }
 
     setData(bars: readonly Bar[]): void {
-        this.reallocate(Math.max(bars.length, DEFAULT_CAPACITY), 0);
+        // Сброс до перевыделения: reallocate копирует [offset, offset + count),
+        // и со старым count новый буфер меньшего размера не вмещает копию.
+        // Именно так падала смена инструмента на бумагу с меньшей историей.
         this.offset = 0;
         this.count = 0;
+        if (this.time.length < bars.length) {
+            this.allocate(Math.max(bars.length, DEFAULT_CAPACITY));
+        }
         for (const bar of bars) this.append(bar);
     }
 
@@ -149,6 +154,20 @@ export class BarSeries {
         return { min, max };
     }
 
+    /** Максимум объёма на [from, to] включительно. Минимум объёма всегда 0. */
+    volumeMaxInRange(from: number, to: number): number {
+        const start = this.offset + Math.max(from, 0);
+        const end = this.offset + Math.min(to, this.count - 1);
+        if (end < start) return NaN;
+
+        let max = this.volume[start]!;
+        for (let i = start + 1; i <= end; i += 1) {
+            const v = this.volume[i]!;
+            if (v > max) max = v;
+        }
+        return max;
+    }
+
     /** Индекс бара по времени; при точном промахе — индекс ближайшего слева. */
     indexOfTime(time: number): number {
         let lo = 0;
@@ -172,6 +191,16 @@ export class BarSeries {
         this.volume[i] = bar.volume;
     }
 
+    private allocate(capacity: number): void {
+        this.time = new Float64Array(capacity);
+        this.open = new Float64Array(capacity);
+        this.high = new Float64Array(capacity);
+        this.low = new Float64Array(capacity);
+        this.close = new Float64Array(capacity);
+        this.volume = new Float64Array(capacity);
+    }
+
+    /** Инвариант: capacity >= newOffset + count, иначе копия не вмещается. */
     private reallocate(capacity: number, newOffset: number): void {
         const grow = (src: Float64Array): Float64Array => {
             const next = new Float64Array(capacity);

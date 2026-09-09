@@ -23,6 +23,59 @@ describe('BarSeries', () => {
         expect(series.closeAt(4999)).toBe(bars[4999]!.close);
     });
 
+    it('повторный setData с меньшим набором не падает', () => {
+        // Смена инструмента на бумагу с меньшей историей: раньше здесь летел
+        // RangeError, потому что копировалась старая длина в новый буфер.
+        const series = new BarSeries();
+        series.setData(randomWalk(5000));
+
+        const smaller = randomWalk(50, 2);
+        expect(() => series.setData(smaller)).not.toThrow();
+        expect(series.length).toBe(50);
+        expect(series.closeAt(0)).toBe(smaller[0]!.close);
+        expect(series.closeAt(49)).toBe(smaller[49]!.close);
+    });
+
+    it('setData после append с меньшим набором не падает', () => {
+        const series = new BarSeries(16);
+        for (const bar of randomWalk(3000)) series.append(bar);
+
+        const smaller = randomWalk(10, 5);
+        expect(() => series.setData(smaller)).not.toThrow();
+        expect(series.length).toBe(10);
+    });
+
+    it('setData после prepend с меньшим набором не падает', () => {
+        const all = randomWalk(400, 7);
+        const series = new BarSeries(32);
+        series.setData(all.slice(200));
+        series.prepend(all.slice(0, 200));
+
+        expect(() => series.setData(randomWalk(5, 9))).not.toThrow();
+        expect(series.length).toBe(5);
+    });
+
+    it('setData пустым набором опустошает ряд', () => {
+        const series = new BarSeries();
+        series.setData(randomWalk(100));
+        series.setData([]);
+
+        expect(series.length).toBe(0);
+        const { min, max } = series.lowHighInRange(0, 0);
+        expect(min).toBeNaN();
+        expect(max).toBeNaN();
+    });
+
+    it('чередование больших и малых наборов остаётся согласованным', () => {
+        const series = new BarSeries();
+        for (const count of [1000, 10, 5000, 3, 200]) {
+            const bars = randomWalk(count, count);
+            series.setData(bars);
+            expect(series.length).toBe(count);
+            expect(series.timeAt(count - 1)).toBe(bars[count - 1]!.time);
+        }
+    });
+
     it('updateLast перезаписывает последний бар, не добавляя новый', () => {
         const series = new BarSeries();
         series.setData(randomWalk(3));
@@ -70,6 +123,15 @@ describe('BarSeries', () => {
             max: Math.max(...slice.map((b) => b.high)),
         };
         expect(series.lowHighInRange(120, 300)).toEqual(expected);
+    });
+
+    it('volumeMaxInRange совпадает с наивным проходом', () => {
+        const bars = randomWalk(300, 13);
+        const series = new BarSeries();
+        series.setData(bars);
+
+        const slice = bars.slice(40, 181);
+        expect(series.volumeMaxInRange(40, 180)).toBe(Math.max(...slice.map((b) => b.volume)));
     });
 
     it('lowHighInRange отдаёт NaN на пустом диапазоне', () => {
