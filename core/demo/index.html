@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>iguanaChart core — стенд</title>
+    <style>
+        :root { color-scheme: dark; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #0f1117;
+            color: #d6d9e0;
+            font: 13px -apple-system, Roboto, "Helvetica Neue", sans-serif;
+        }
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #232733;
+        }
+        label { display: inline-flex; gap: 6px; align-items: center; color: #8b90a0; }
+        select, button, input {
+            background: #1c202b;
+            color: #d6d9e0;
+            border: 1px solid #2a2e39;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font: inherit;
+        }
+        button { cursor: pointer; }
+        button:hover { border-color: #3d4351; }
+        #stats { margin-left: auto; font-variant-numeric: tabular-nums; color: #8b90a0; }
+        #stats b { color: #d6d9e0; font-weight: 600; }
+        #chart { height: calc(100vh - 92px); }
+        #readout {
+            padding: 6px 14px;
+            border-top: 1px solid #232733;
+            font-variant-numeric: tabular-nums;
+            color: #8b90a0;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <label>Баров
+            <select id="barCount">
+                <option value="1000">1 000</option>
+                <option value="10000">10 000</option>
+                <option value="100000" selected>100 000</option>
+                <option value="1000000">1 000 000</option>
+            </select>
+        </label>
+        <label>Шкала цен
+            <select id="mode">
+                <option value="linear">линейная</option>
+                <option value="logarithmic">логарифмическая</option>
+                <option value="percentage">процентная</option>
+            </select>
+        </label>
+        <button id="fit">Вписать всё</button>
+        <button id="stream">Пустить тики</button>
+        <div id="stats"></div>
+    </header>
+    <div id="chart"></div>
+    <div id="readout"></div>
+    <script type="module" src="./main.ts"></script>
+</body>
+</html>
