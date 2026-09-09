@@ -1,4 +1,4 @@
-import { createChart, type Bar } from '../src/index.js';
+import { Rsi, createChart, type Bar } from '../src/index.js';
 
 const chartHost = document.querySelector<HTMLDivElement>('#chart')!;
 const stats = document.querySelector<HTMLDivElement>('#stats')!;
@@ -38,13 +38,10 @@ const chart = createChart(chartHost);
 // Отладочный хук: демо-стенд, тут это уместно.
 (globalThis as unknown as { __chart: unknown }).__chart = chart;
 
-chart.on('crosshairMove', ({ bar, price }) => {
-    readout.textContent =
-        bar === null
-            ? `цена ${price.toFixed(2)}`
-            : `${new Date(bar.time).toISOString().slice(0, 16).replace('T', ' ')}   ` +
-              `O ${bar.open.toFixed(2)}  H ${bar.high.toFixed(2)}  ` +
-              `L ${bar.low.toFixed(2)}  C ${bar.close.toFixed(2)}  V ${bar.volume}`;
+chart.on('crosshairMove', ({ bar, legends }) => {
+    const time =
+        bar === null ? '' : new Date(bar.time).toISOString().slice(0, 16).replace('T', ' ');
+    readout.textContent = [time, ...legends].filter(Boolean).join('   ');
 });
 chart.on('crosshairLeave', () => {
     readout.textContent = '';
@@ -71,6 +68,29 @@ modeSelect.addEventListener('change', () => {
     chart.setPriceScaleMode(modeSelect.value as 'linear' | 'logarithmic' | 'percentage');
 });
 document.querySelector('#fit')!.addEventListener('click', () => chart.fitContent());
+
+// Пейны добавляются по одному контракту: объём и индикатор различаются только
+// источником, ядро о их природе ничего не знает.
+let volumeAdded = false;
+document.querySelector('#volume')!.addEventListener('click', (event) => {
+    if (volumeAdded) return;
+    volumeAdded = true;
+    chart.addVolumePane();
+    (event.currentTarget as HTMLButtonElement).disabled = true;
+});
+
+let rsiAdded = false;
+document.querySelector('#rsi')!.addEventListener('click', (event) => {
+    if (rsiAdded) return;
+    rsiAdded = true;
+    chart.addIndicatorPane(new Rsi(14), {
+        range: { min: 0, max: 100 },
+        levels: [30, 70],
+        color: '#c9a227',
+        precision: 1,
+    });
+    (event.currentTarget as HTMLButtonElement).disabled = true;
+});
 
 // Поток тиков: проверяем, что обновление последнего бара не стоит как полная
 // перерисовка истории.
@@ -111,7 +131,8 @@ const tick = (): void => {
         const visible = chart.visibleBars();
         stats.innerHTML =
             `<b>${fps.toFixed(0)}</b> fps · видно <b>${Math.max(visible.to - visible.from + 1, 0)}</b> ` +
-            `из <b>${chart.barCount().toLocaleString('ru')}</b> · ${stats.dataset.load ?? ''}`;
+            `из <b>${chart.barCount().toLocaleString('ru')}</b> · пейнов <b>${chart.paneCount()}</b> · ` +
+            `${stats.dataset.load ?? ''}`;
     }
     requestAnimationFrame(tick);
 };
