@@ -31,7 +31,16 @@ export class TimeAxisFormatter {
     private current: Intl.DateTimeFormat;
     private currentKey = '';
 
-    constructor(private readonly locale?: string) {
+    /**
+     * timeZone задаёт пояс отображения, не сдвигая сами данные. Именно этим
+     * он отличается от подхода legacy, где к меткам времени прибавлялась
+     * разница между Москвой и зрителем — и историю уводило на час при
+     * переходе на летнее время.
+     */
+    constructor(
+        private readonly locale?: string,
+        private readonly timeZone?: string,
+    ) {
         this.current = this.formatterFor(DAY);
     }
 
@@ -58,7 +67,10 @@ export class TimeAxisFormatter {
     private cachedFormatter(key: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
         let formatter = this.cache.get(key);
         if (formatter === undefined) {
-            formatter = new Intl.DateTimeFormat(this.locale, options);
+            formatter = new Intl.DateTimeFormat(
+                this.locale,
+                this.timeZone === undefined ? options : { ...options, timeZone: this.timeZone },
+            );
             this.cache.set(key, formatter);
         }
         return formatter;

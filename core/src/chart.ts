@@ -64,6 +64,13 @@ export interface ChartOptions {
     priceScaleMode: PriceScaleMode;
     timeScale: Partial<TimeScaleOptions>;
     font: string;
+    /** Локаль подписей оси времени; undefined — локаль браузера. */
+    locale: string | undefined;
+    /**
+     * Пояс отображения времени, например 'Europe/Moscow'. Данные при этом
+     * остаются истинным UTC — сдвигаются только подписи.
+     */
+    timeZone: string | undefined;
 }
 
 export interface CrosshairPayload {
@@ -135,6 +142,8 @@ const DEFAULT_OPTIONS: ChartOptions = {
     priceScaleMode: 'linear',
     timeScale: {},
     font: '11px -apple-system, Roboto, "Helvetica Neue", sans-serif',
+    locale: undefined,
+    timeZone: undefined,
 };
 
 /** Целевое расстояние между подписями осей, px. */
@@ -180,7 +189,7 @@ export class Chart {
     private paneAreaHeight = 0;
     private crosshair: { x: number; y: number } | null = null;
     private lastVisible: VisibleRange = { from: 0, to: -1 };
-    private readonly timeFormatter = new TimeAxisFormatter();
+    private readonly timeFormatter: TimeAxisFormatter;
 
     /**
      * График часто монтируется в скрытой вкладке или свёрнутой панели: там
@@ -204,6 +213,8 @@ export class Chart {
         this.host.style.height = '100%';
         this.host.style.overflow = 'hidden';
         container.appendChild(this.host);
+
+        this.timeFormatter = new TimeAxisFormatter(this.options.locale, this.options.timeZone);
 
         this.mainLayer = new CanvasLayer(this.host, 0);
         this.overlayLayer = new CanvasLayer(this.host, 1);

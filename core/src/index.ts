@@ -7,6 +7,12 @@ export type {
     PaneOptions,
     ThemeName,
 } from './chart.js';
+export {
+    barFromHlocRow,
+    readIguanaResponse,
+    tickersOf,
+} from './data/iguana-response.js';
+export type { IguanaChartResponse, ReadResult } from './data/iguana-response.js';
 export { BarSeries } from './model/bars.js';
 export type { Bar, MinMax } from './model/bars.js';
 export { IndicatorSeries } from './model/indicator-series.js';

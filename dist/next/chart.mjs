@@ -260,7 +260,7 @@ var f = {
 	mode: "linear",
 	topMargin: .1,
 	bottomMargin: .1
-}, ee = 1e-10, p = class {
+}, p = 1e-10, m = class {
 	constructor(e = {}) {
 		r(this, "height", 0), r(this, "internalMin", 0), r(this, "internalMax", 1), r(this, "base", 1), r(this, "options", void 0), this.options = {
 			...f,
@@ -306,7 +306,7 @@ var f = {
 	toInternal(e) {
 		switch (this.options.mode) {
 			case "linear": return e;
-			case "logarithmic": return Math.log10(Math.max(e, ee));
+			case "logarithmic": return Math.log10(Math.max(e, p));
 			case "percentage": return (e / this.base - 1) * 100;
 		}
 	}
@@ -320,15 +320,15 @@ var f = {
 	guardRange() {
 		this.internalMax <= this.internalMin && (this.internalMax = this.internalMin + 1);
 	}
-}, m = {
+}, h = {
 	barSpacing: 8,
 	minBarSpacing: .5,
 	maxBarSpacing: 120,
 	rightOffset: 0
-}, h = (e, t, n) => e < t ? t : e > n ? n : e, g = class {
+}, g = (e, t, n) => e < t ? t : e > n ? n : e, _ = class {
 	constructor(e = {}) {
 		r(this, "width", 0), r(this, "barCount", 0), r(this, "spacing", void 0), r(this, "offsetBars", void 0), r(this, "options", void 0), this.options = {
-			...m,
+			...h,
 			...e
 		}, this.spacing = this.options.barSpacing, this.offsetBars = this.options.rightOffset;
 	}
@@ -345,7 +345,7 @@ var f = {
 		this.barCount = Math.max(e, 0), this.clampOffset();
 	}
 	setBarSpacing(e) {
-		this.spacing = h(e, this.options.minBarSpacing, this.options.maxBarSpacing), this.clampOffset();
+		this.spacing = g(e, this.options.minBarSpacing, this.options.maxBarSpacing), this.clampOffset();
 	}
 	setRightOffset(e) {
 		this.offsetBars = e, this.clampOffset();
@@ -375,19 +375,19 @@ var f = {
 	}
 	zoomAt(e, t) {
 		let n = this.logicalAt(e), r = this.spacing;
-		if (this.spacing = h(this.spacing * t, this.options.minBarSpacing, this.options.maxBarSpacing), this.spacing === r) return;
+		if (this.spacing = g(this.spacing * t, this.options.minBarSpacing, this.options.maxBarSpacing), this.spacing === r) return;
 		let i = n + (this.width - e) / this.spacing;
 		this.offsetBars = i - (this.barCount - 1), this.clampOffset();
 	}
 	fitContent() {
-		this.barCount !== 0 && this.width !== 0 && (this.spacing = h(this.width / this.barCount, this.options.minBarSpacing, this.options.maxBarSpacing), this.offsetBars = .5, this.clampOffset());
+		this.barCount !== 0 && this.width !== 0 && (this.spacing = g(this.width / this.barCount, this.options.minBarSpacing, this.options.maxBarSpacing), this.offsetBars = .5, this.clampOffset());
 	}
 	clampOffset() {
 		if (this.barCount === 0 || this.width === 0 || this.spacing === 0) return;
 		let e = this.width / this.spacing * .75, t = -(this.barCount - 1);
-		this.offsetBars = h(this.offsetBars, t, e);
+		this.offsetBars = g(this.offsetBars, t, e);
 	}
-}, _ = class {
+}, v = class {
 	constructor(e, t) {
 		r(this, "canvas", void 0), r(this, "ctx", void 0), r(this, "cssWidth", 0), r(this, "cssHeight", 0), this.canvas = e.ownerDocument.createElement("canvas"), this.canvas.style.position = "absolute", this.canvas.style.inset = "0", this.canvas.style.zIndex = String(t), e.appendChild(this.canvas);
 		let n = this.canvas.getContext("2d");
@@ -409,7 +409,7 @@ var f = {
 	dispose() {
 		this.canvas.remove();
 	}
-}, v = class {
+}, y = class {
 	constructor(e, t = (e) => globalThis.requestAnimationFrame(e), n = (e) => globalThis.cancelAnimationFrame(e)) {
 		r(this, "onFrame", void 0), r(this, "requestFrame", void 0), r(this, "cancelFrame", void 0), r(this, "level", l.None), r(this, "handle", 0), r(this, "disposed", !1), r(this, "tick", () => {
 			if (this.handle = 0, this.disposed) return;
@@ -429,7 +429,7 @@ var f = {
 	dispose() {
 		this.disposed = !0, this.handle !== 0 && this.cancelFrame(this.handle), this.handle = 0, this.level = l.None;
 	}
-}, y = class {
+}, b = class {
 	constructor() {
 		r(this, "count", 0), r(this, "x", /* @__PURE__ */ new Float32Array()), r(this, "bodyTop", /* @__PURE__ */ new Float32Array()), r(this, "bodyBottom", /* @__PURE__ */ new Float32Array()), r(this, "wickTop", /* @__PURE__ */ new Float32Array()), r(this, "wickBottom", /* @__PURE__ */ new Float32Array()), r(this, "up", /* @__PURE__ */ new Uint8Array()), r(this, "bodyWidth", 1), r(this, "wickOnly", !1);
 	}
@@ -439,74 +439,77 @@ var f = {
 		this.x = new Float32Array(t), this.bodyTop = new Float32Array(t), this.bodyBottom = new Float32Array(t), this.wickTop = new Float32Array(t), this.wickBottom = new Float32Array(t), this.up = new Uint8Array(t);
 	}
 };
-function b(e) {
+function ee(e) {
 	let t = Math.floor(e * .8);
 	return t < 1 ? 1 : t % 2 == 0 ? t - 1 : t;
 }
-function x(e, t, n, r, i, a) {
+function te(e, t, n, r, i, a) {
 	let o = n - t + 1;
 	if (o <= 0) {
 		a.count = 0;
 		return;
 	}
-	a.ensureCapacity(o), a.bodyWidth = b(r.barSpacing), a.wickOnly = r.barSpacing < 3;
+	a.ensureCapacity(o), a.bodyWidth = ee(r.barSpacing), a.wickOnly = r.barSpacing < 3;
 	for (let n = 0; n < o; n += 1) {
 		let o = t + n, s = e.openAt(o), c = e.closeAt(o), l = +(c >= s);
 		a.x[n] = Math.round(r.xAt(o)), a.wickTop[n] = i.yAt(e.highAt(o)), a.wickBottom[n] = i.yAt(e.lowAt(o)), a.bodyTop[n] = i.yAt(l === 1 ? c : s), a.bodyBottom[n] = i.yAt(l === 1 ? s : c), a.up[n] = l;
 	}
 	a.count = o;
 }
-function S(e, t) {
+function x(e, t) {
 	if (!(e > 0) || t <= 0) return 1;
 	let n = e / t, r = 10 ** Math.floor(Math.log10(n)), i = n / r;
 	return (i <= 1 ? 1 : i <= 2 ? 2 : i <= 2.5 ? 2.5 : i <= 5 ? 5 : 10) * r;
 }
 //#endregion
 //#region core/src/render/time-format.ts
-var C = 864e5;
-function w(e) {
-	return e < C ? {
+var S = 864e5;
+function C(e) {
+	return e < S ? {
 		hour: "2-digit",
 		minute: "2-digit"
-	} : e < 7 * C ? {
+	} : e < 7 * S ? {
 		day: "2-digit",
 		month: "short",
 		hour: "2-digit",
 		minute: "2-digit"
-	} : e < 60 * C ? {
+	} : e < 60 * S ? {
 		day: "2-digit",
 		month: "short"
-	} : e < 1095 * C ? {
+	} : e < 1095 * S ? {
 		month: "short",
 		year: "numeric"
 	} : { year: "numeric" };
 }
-var T = class {
-	constructor(e) {
-		r(this, "locale", void 0), r(this, "cache", /* @__PURE__ */ new Map()), r(this, "current", void 0), r(this, "currentKey", ""), this.locale = e, this.current = this.formatterFor(C);
+var ne = class {
+	constructor(e, t) {
+		r(this, "locale", void 0), r(this, "timeZone", void 0), r(this, "cache", /* @__PURE__ */ new Map()), r(this, "current", void 0), r(this, "currentKey", ""), this.locale = e, this.timeZone = t, this.current = this.formatterFor(S);
 	}
 	setVisibleSpan(e) {
-		let t = w(e), n = Object.keys(t).sort().join(",");
+		let t = C(e), n = Object.keys(t).sort().join(",");
 		return n !== this.currentKey && (this.currentKey = n, this.current = this.cachedFormatter(n, t), !0);
 	}
 	format(e) {
 		return this.current.format(e);
 	}
 	formatterFor(e) {
-		let t = w(e);
+		let t = C(e);
 		return this.currentKey = Object.keys(t).sort().join(","), this.cachedFormatter(this.currentKey, t);
 	}
 	cachedFormatter(e, t) {
 		let n = this.cache.get(e);
-		return n === void 0 && (n = new Intl.DateTimeFormat(this.locale, t), this.cache.set(e, n)), n;
+		return n === void 0 && (n = new Intl.DateTimeFormat(this.locale, this.timeZone === void 0 ? t : {
+			...t,
+			timeZone: this.timeZone
+		}), this.cache.set(e, n)), n;
 	}
 };
 //#endregion
 //#region core/src/render/candle-renderer.ts
-function E(e, t, n) {
+function w(e, t, n) {
 	if (t.count === 0) return;
 	if (t.wickOnly) {
-		te(e, t, n);
+		re(e, t, n);
 		return;
 	}
 	let r = (t.bodyWidth - 1) / 2;
@@ -522,7 +525,7 @@ function E(e, t, n) {
 		e.fillStyle = i === 1 ? n.upColor : n.downColor, e.fill();
 	}
 }
-function te(e, t, n) {
+function re(e, t, n) {
 	for (let r of [1, 0]) {
 		e.beginPath();
 		for (let n = 0; n < t.count; n += 1) {
@@ -535,9 +538,9 @@ function te(e, t, n) {
 }
 //#endregion
 //#region core/src/series/candle-source.ts
-var ne = class {
+var T = class {
 	constructor(e) {
-		r(this, "style", void 0), r(this, "title", "Свечи"), r(this, "geometry", new y()), this.style = e;
+		r(this, "style", void 0), r(this, "title", "Свечи"), r(this, "geometry", new b()), this.style = e;
 	}
 	setStyle(e) {
 		this.style = e;
@@ -547,17 +550,17 @@ var ne = class {
 	}
 	sync(e, t) {}
 	build(e) {
-		x(e.bars, e.from, e.to, e.timeScale, e.priceScale, this.geometry);
+		te(e.bars, e.from, e.to, e.timeScale, e.priceScale, this.geometry);
 	}
 	draw(e) {
-		E(e, this.geometry, this.style);
+		w(e, this.geometry, this.style);
 	}
 	legendAt(e, t) {
 		if (t < 0 || t >= e.length) return null;
 		let n = e.barAt(t);
 		return `O ${n.open.toFixed(2)}  H ${n.high.toFixed(2)}  L ${n.low.toFixed(2)}  C ${n.close.toFixed(2)}`;
 	}
-}, re = class {
+}, E = class {
 	constructor(e) {
 		r(this, "channelCount", void 0), r(this, "channels", void 0), r(this, "scratch", void 0), r(this, "count", 0), this.channelCount = e, this.channels = Array.from({ length: e }, () => /* @__PURE__ */ new Float64Array()), this.scratch = new Float64Array(e);
 	}
@@ -666,7 +669,7 @@ var se = {
 		r(this, "indicator", void 0), r(this, "title", void 0), r(this, "series", void 0), r(this, "geometries", void 0), r(this, "options", void 0), r(this, "colorIsExplicit", void 0), r(this, "paneWidth", 0), r(this, "levelY", []), this.indicator = e, this.options = {
 			...se,
 			...t
-		}, this.title = e.name, this.colorIsExplicit = n, this.series = new re(e.outputs.length), this.geometries = e.outputs.map(() => new ie());
+		}, this.title = e.name, this.colorIsExplicit = n, this.series = new E(e.outputs.length), this.geometries = e.outputs.map(() => new ie());
 	}
 	applyTheme(e, t) {
 		this.colorIsExplicit || (this.options.color = e), this.options.levelColor = t;
@@ -721,7 +724,7 @@ var se = {
 		}
 		return n.length === 0 ? null : n.join("  ");
 	}
-}, O = class {
+}, ce = class {
 	constructor() {
 		r(this, "count", 0), r(this, "x", /* @__PURE__ */ new Float32Array()), r(this, "top", /* @__PURE__ */ new Float32Array()), r(this, "up", /* @__PURE__ */ new Uint8Array()), r(this, "barWidth", 1), r(this, "baseline", 0);
 	}
@@ -731,7 +734,7 @@ var se = {
 		this.x = new Float32Array(t), this.top = new Float32Array(t), this.up = new Uint8Array(t);
 	}
 };
-function k(e, t, n, r, i, a, o) {
+function le(e, t, n, r, i, a, o) {
 	let s = n - t + 1;
 	if (s <= 0) {
 		o.count = 0;
@@ -744,7 +747,7 @@ function k(e, t, n, r, i, a, o) {
 	}
 	o.count = s;
 }
-function A(e, t, n) {
+function ue(e, t, n) {
 	if (t.count === 0) return;
 	let r = (t.barWidth - 1) / 2;
 	for (let i of [1, 0]) {
@@ -759,9 +762,9 @@ function A(e, t, n) {
 }
 //#endregion
 //#region core/src/series/volume-source.ts
-var j = class {
+var O = class {
 	constructor(e) {
-		r(this, "style", void 0), r(this, "title", "Объём"), r(this, "geometry", new O()), this.style = e;
+		r(this, "style", void 0), r(this, "title", "Объём"), r(this, "geometry", new ce()), this.style = e;
 	}
 	setStyle(e) {
 		this.style = e;
@@ -774,15 +777,15 @@ var j = class {
 	}
 	sync(e, t) {}
 	build(e) {
-		k(e.bars, e.from, e.to, e.timeScale, e.priceScale, e.paneHeight, this.geometry);
+		le(e.bars, e.from, e.to, e.timeScale, e.priceScale, e.paneHeight, this.geometry);
 	}
 	draw(e) {
-		A(e, this.geometry, this.style);
+		ue(e, this.geometry, this.style);
 	}
 	legendAt(e, t) {
 		return t < 0 || t >= e.length ? null : `V ${e.volumeAt(t).toLocaleString("ru")}`;
 	}
-}, M = {
+}, k = {
 	background: "#1e222d",
 	grid: "#2a2e39",
 	text: "#787b86",
@@ -798,7 +801,7 @@ var j = class {
 	volumeDownColor: "rgba(239, 83, 80, 0.45)",
 	indicatorLine: "#2196f3",
 	indicatorLevel: "#2a2e39"
-}, N = {
+}, A = {
 	background: "#ffffff",
 	grid: "#cccccc",
 	text: "#595959",
@@ -814,39 +817,41 @@ var j = class {
 	volumeDownColor: "rgba(199, 87, 87, 0.45)",
 	indicatorLine: "#1565c0",
 	indicatorLevel: "#dddddd"
-}, P = {
-	light: N,
-	dark: M
-}, ce = {
-	colors: M,
+}, j = {
+	light: A,
+	dark: k
+}, de = {
+	colors: k,
 	priceScaleWidth: 64,
 	timeScaleHeight: 22,
 	separatorHeight: 6,
 	priceScaleMode: "linear",
 	timeScale: {},
-	font: "11px -apple-system, Roboto, \"Helvetica Neue\", sans-serif"
-}, le = 44, ue = 84, de = {
+	font: "11px -apple-system, Roboto, \"Helvetica Neue\", sans-serif",
+	locale: void 0,
+	timeZone: void 0
+}, fe = 44, pe = 84, me = {
 	weight: 3,
 	minHeight: 80,
 	range: null,
 	formatValue: null,
 	axisValues: null
-}, fe = new Intl.NumberFormat("ru", {
+}, he = new Intl.NumberFormat("ru", {
 	notation: "compact",
 	maximumFractionDigits: 1
-}), F = class {
+}), M = class {
 	constructor(e, t = {}) {
 		r(this, "options", void 0), r(this, "bars", new c()), r(this, "timeScale", void 0), r(this, "emitter", new i()), r(this, "panes", []), r(this, "candleSource", void 0), r(this, "host", void 0), r(this, "mainLayer", void 0), r(this, "overlayLayer", void 0), r(this, "frameLoop", void 0), r(this, "detachInput", void 0), r(this, "resizeObserver", void 0), r(this, "paneWidth", 0), r(this, "paneAreaHeight", 0), r(this, "crosshair", null), r(this, "lastVisible", {
 			from: 0,
 			to: -1
-		}), r(this, "timeFormatter", new T()), r(this, "hasSize", !1), r(this, "fitContentPending", !1), this.options = {
-			...ce,
+		}), r(this, "timeFormatter", void 0), r(this, "hasSize", !1), r(this, "fitContentPending", !1), this.options = {
+			...de,
 			...t,
 			colors: {
-				...M,
+				...k,
 				...t.colors
 			}
-		}, this.host = e.ownerDocument.createElement("div"), this.host.style.position = "relative", this.host.style.width = "100%", this.host.style.height = "100%", this.host.style.overflow = "hidden", e.appendChild(this.host), this.mainLayer = new _(this.host, 0), this.overlayLayer = new _(this.host, 1), this.timeScale = new g(this.options.timeScale), this.candleSource = new ne(this.options.colors), this.addPane([this.candleSource], de, this.options.priceScaleMode), this.frameLoop = new v((e) => this.draw(e)), this.detachInput = o(this.host, {
+		}, this.host = e.ownerDocument.createElement("div"), this.host.style.position = "relative", this.host.style.width = "100%", this.host.style.height = "100%", this.host.style.overflow = "hidden", e.appendChild(this.host), this.timeFormatter = new ne(this.options.locale, this.options.timeZone), this.mainLayer = new v(this.host, 0), this.overlayLayer = new v(this.host, 1), this.timeScale = new _(this.options.timeScale), this.candleSource = new T(this.options.colors), this.addPane([this.candleSource], me, this.options.priceScaleMode), this.frameLoop = new y((e) => this.draw(e)), this.detachInput = o(this.host, {
 			onPan: (e) => {
 				this.timeScale.scrollBy(e), this.frameLoop.invalidate(l.Full);
 			},
@@ -878,7 +883,7 @@ var j = class {
 		this.bars.prepend(e), this.timeScale.setBarCount(this.bars.length), this.syncSources("reset"), this.frameLoop.invalidate(l.Full);
 	}
 	addVolumePane(e = {}) {
-		let t = new j({
+		let t = new O({
 			upColor: this.options.colors.volumeUpColor,
 			downColor: this.options.colors.volumeDownColor
 		});
@@ -886,10 +891,25 @@ var j = class {
 			weight: 1,
 			minHeight: 48,
 			range: null,
-			formatValue: (e) => fe.format(e),
+			formatValue: (e) => he.format(e),
 			axisValues: null,
 			...e
 		}, "linear"), t.sync(this.bars, "reset"), this.relayout(), this.frameLoop.invalidate(l.Full), t;
+	}
+	addIndicatorOverlay(e, t = {}) {
+		let n = new D(e, {
+			color: this.options.colors.indicatorLine,
+			levelColor: this.options.colors.indicatorLevel,
+			...t
+		}, t.color !== void 0);
+		return this.panes[0]?.sources.push(n), n.sync(this.bars, "reset"), this.frameLoop.invalidate(l.Full), n;
+	}
+	removeSource(e) {
+		for (let t = this.panes.length - 1; t >= 0; --t) {
+			let n = this.panes[t], r = n.sources.indexOf(e);
+			if (r !== -1) return n.sources.splice(r, 1), n.sources.length === 0 && t > 0 && (this.panes.splice(t, 1), this.relayout()), this.frameLoop.invalidate(l.Full), !0;
+		}
+		return !1;
 	}
 	addIndicatorPane(e, t = {}) {
 		let n = new D(e, {
@@ -911,7 +931,7 @@ var j = class {
 		return this.panes.length;
 	}
 	setTheme(e) {
-		this.applyColors(P[e]);
+		this.applyColors(j[e]);
 	}
 	applyOptions(e) {
 		e.colors !== void 0 && this.applyColors({
@@ -924,7 +944,7 @@ var j = class {
 	}
 	applyColors(e) {
 		this.options.colors = e, this.candleSource.setStyle(e);
-		for (let t of this.panes) for (let n of t.sources) n instanceof j ? n.setStyle({
+		for (let t of this.panes) for (let n of t.sources) n instanceof O ? n.setStyle({
 			upColor: e.volumeUpColor,
 			downColor: e.volumeDownColor
 		}) : n instanceof D && n.applyTheme(e.indicatorLine, e.indicatorLevel);
@@ -959,7 +979,7 @@ var j = class {
 	addPane(e, t, n) {
 		this.panes.push({
 			sources: e,
-			priceScale: new p({ mode: n }),
+			priceScale: new m({ mode: n }),
 			options: t,
 			rect: {
 				top: 0,
@@ -1023,7 +1043,7 @@ var j = class {
 	}
 	tickStep(e) {
 		let { min: t, max: n } = e.priceScale.priceRange();
-		return S(n - t, Math.max(e.rect.height / le, 1));
+		return x(n - t, Math.max(e.rect.height / fe, 1));
 	}
 	drawPaneGrid(e, t) {
 		if (t.options.axisValues !== null) return;
@@ -1062,7 +1082,7 @@ var j = class {
 		let { colors: n, font: r } = this.options, i = this.paneAreaHeight;
 		if (e.beginPath(), e.moveTo(0, i + .5), e.lineTo(this.mainLayer.width, i + .5), e.strokeStyle = n.grid, e.lineWidth = 1, e.stroke(), t.to < t.from) return;
 		this.timeFormatter.setVisibleSpan(this.bars.timeAt(t.to) - this.bars.timeAt(t.from));
-		let a = Math.max(1, Math.ceil(ue / Math.max(this.timeScale.barSpacing, .01)));
+		let a = Math.max(1, Math.ceil(pe / Math.max(this.timeScale.barSpacing, .01)));
 		e.font = r, e.fillStyle = n.text, e.textAlign = "center", e.textBaseline = "middle";
 		for (let n = t.from; n <= t.to; n += a) {
 			let t = this.timeScale.xAt(n);
@@ -1100,12 +1120,90 @@ var j = class {
 		});
 	}
 };
-function pe(e, t) {
-	return new F(e, t);
+function ge(e, t) {
+	return new M(e, t);
+}
+//#endregion
+//#region core/src/data/iguana-response.ts
+function N(e) {
+	if (e == null || e === "") return NaN;
+	let t = Number(e);
+	return Number.isFinite(t) ? t : NaN;
+}
+var P = 0, F = 1, I = 2, L = 3;
+function R(e) {
+	return e.hloc === void 0 ? [] : Object.keys(e.hloc);
+}
+function _e(e, t) {
+	let n = R(e), r = t ?? n[0], i = {
+		ticker: r ?? null,
+		bars: [],
+		skipped: 0,
+		outOfOrder: 0,
+		duplicates: 0
+	};
+	if (r === void 0) return i;
+	let a = e.hloc?.[r], o = e.xSeries?.[r];
+	if (a === void 0 || o === void 0) return i;
+	let s = e.vl?.[r], c = Math.min(a.length, o.length), l = [], u = 0, d = 0, f = -Infinity;
+	for (let e = 0; e < c; e += 1) {
+		let t = a[e];
+		if (t === void 0) {
+			u += 1;
+			continue;
+		}
+		let n = N(o[e]) * 1e3, r = N(t[P]), i = N(t[F]), c = N(t[I]), p = N(t[L]);
+		if (!Number.isFinite(n) || !Number.isFinite(r) || !Number.isFinite(i) || !Number.isFinite(c) || !Number.isFinite(p)) {
+			u += 1;
+			continue;
+		}
+		n < f && (d += 1), f = n;
+		let m = s === void 0 ? 0 : N(s[e]);
+		l.push({
+			time: n,
+			open: c,
+			high: r,
+			low: i,
+			close: p,
+			volume: Number.isFinite(m) ? m : 0
+		});
+	}
+	d > 0 && l.sort((e, t) => e.time - t.time);
+	let p = ve(l);
+	return {
+		ticker: r,
+		bars: l,
+		skipped: u,
+		outOfOrder: d,
+		duplicates: p
+	};
+}
+function ve(e) {
+	let t = 0, n = 0;
+	for (let r = 0; r < e.length; r += 1) {
+		let i = e[r];
+		if (t > 0 && e[t - 1].time === i.time) {
+			e[t - 1] = i, n += 1;
+			continue;
+		}
+		e[t] = i, t += 1;
+	}
+	return e.length = t, n;
+}
+function ye(e, t, n = 0) {
+	let r = {
+		time: N(e) * 1e3,
+		open: N(t[I]),
+		high: N(t[P]),
+		low: N(t[F]),
+		close: N(t[L]),
+		volume: N(n)
+	};
+	return Number.isFinite(r.time) && Number.isFinite(r.open) && Number.isFinite(r.high) && Number.isFinite(r.low) && Number.isFinite(r.close) ? (Number.isFinite(r.volume) || (r.volume = 0), r) : null;
 }
 //#endregion
 //#region core/src/indicators/indicator.ts
-var I = class {
+var z = class {
 	constructor() {
 		r(this, "savedState", void 0);
 	}
@@ -1122,7 +1220,7 @@ var I = class {
 	reset() {
 		this.savedState = void 0, this.initState();
 	}
-}, L = class {
+}, B = class {
 	constructor(e) {
 		if (r(this, "size", void 0), r(this, "open_", void 0), r(this, "high_", void 0), r(this, "low_", void 0), r(this, "close_", void 0), r(this, "volume_", void 0), r(this, "time_", void 0), r(this, "head", -1), r(this, "seenCount", 0), this.size = e, !Number.isInteger(e) || e < 1) throw RangeError(`размер окна должен быть целым >= 1, получено ${e}`);
 		this.open_ = new Float64Array(e), this.high_ = new Float64Array(e), this.low_ = new Float64Array(e), this.close_ = new Float64Array(e), this.volume_ = new Float64Array(e), this.time_ = new Float64Array(e);
@@ -1174,9 +1272,9 @@ var I = class {
 	write(e) {
 		this.open_[this.head] = e.open, this.high_[this.head] = e.high, this.low_[this.head] = e.low, this.close_[this.head] = e.close, this.volume_[this.head] = e.volume, this.time_[this.head] = e.time;
 	}
-}, R = class {
+}, V = class {
 	constructor(e) {
-		r(this, "window", void 0), this.window = new L(e);
+		r(this, "window", void 0), this.window = new B(e);
 	}
 	reset() {
 		this.window.clear();
@@ -1191,15 +1289,15 @@ var I = class {
 		for (let t = 0; t < this.outputs.length; t += 1) e[t] = NaN;
 	}
 };
-function z(e, t) {
+function H(e, t) {
 	if (!Number.isInteger(e) || e < 1) throw RangeError(`${t} должен быть целым >= 1, получено ${e}`);
 	return e;
 }
 //#endregion
 //#region core/src/indicators/number-window.ts
-var B = class {
+var U = class {
 	constructor(e) {
-		r(this, "size", void 0), r(this, "values", void 0), r(this, "head", -1), r(this, "seenCount", 0), this.size = e, z(e, "размер окна"), this.values = new Float64Array(e);
+		r(this, "size", void 0), r(this, "values", void 0), r(this, "head", -1), r(this, "seenCount", 0), this.size = e, H(e, "размер окна"), this.values = new Float64Array(e);
 	}
 	get seen() {
 		return this.seenCount;
@@ -1239,9 +1337,9 @@ var B = class {
 	get headIndex() {
 		return this.head;
 	}
-}, V = class {
+}, W = class {
 	constructor(e, t = 0, n = "sma") {
-		r(this, "period", void 0), r(this, "seedDelay", void 0), r(this, "seedMode", void 0), r(this, "k", void 0), r(this, "seedWindow", void 0), r(this, "value", NaN), r(this, "seen", 0), r(this, "ready", !1), this.period = e, this.seedDelay = t, this.seedMode = n, z(e, "период EMA"), this.k = 2 / (e + 1), this.seedWindow = new B(e);
+		r(this, "period", void 0), r(this, "seedDelay", void 0), r(this, "seedMode", void 0), r(this, "k", void 0), r(this, "seedWindow", void 0), r(this, "value", NaN), r(this, "seen", 0), r(this, "ready", !1), this.period = e, this.seedDelay = t, this.seedMode = n, H(e, "период EMA"), this.k = 2 / (e + 1), this.seedWindow = new U(e);
 	}
 	get seedIndex() {
 		return this.seedMode === "first" ? this.seedDelay : this.period - 1 + this.seedDelay;
@@ -1273,9 +1371,9 @@ var B = class {
 	restore(e) {
 		this.value = e.value, this.seen = e.seen, this.ready = e.ready, e.window !== null && this.seedWindow.restore(e.window, e.head, e.seen);
 	}
-}, H = class extends R {
+}, be = class extends V {
 	constructor(e) {
-		super(z(e, "период SMA")), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["SMA"]), this.period = e, this.name = `SMA(${e})`;
+		super(H(e, "период SMA")), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["SMA"]), this.period = e, this.name = `SMA(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1286,9 +1384,9 @@ var B = class {
 		for (let e = 0; e < this.period; e += 1) t += this.window.close(e);
 		e[0] = t / this.period;
 	}
-}, me = class extends I {
+}, xe = class extends z {
 	constructor(e = 14) {
-		super(), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["RSI"]), r(this, "prevClose", 0), r(this, "hasPrev", !1), r(this, "changes", 0), r(this, "sumGain", 0), r(this, "sumLoss", 0), r(this, "avgGain", 0), r(this, "avgLoss", 0), this.period = e, z(e, "период RSI"), this.name = `RSI(${e})`;
+		super(), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["RSI"]), r(this, "prevClose", 0), r(this, "hasPrev", !1), r(this, "changes", 0), r(this, "sumGain", 0), r(this, "sumLoss", 0), r(this, "avgGain", 0), r(this, "avgLoss", 0), this.period = e, H(e, "период RSI"), this.name = `RSI(${e})`;
 	}
 	initState() {
 		this.prevClose = 0, this.hasPrev = !1, this.changes = 0, this.sumGain = 0, this.sumLoss = 0, this.avgGain = 0, this.avgLoss = 0;
@@ -1321,28 +1419,28 @@ var B = class {
 		}
 		this.changes === this.period ? (this.sumGain += r, this.sumLoss += i, this.avgGain = this.sumGain / this.period, this.avgLoss = this.sumLoss / this.period) : (this.avgGain = (this.avgGain * (this.period - 1) + r) / this.period, this.avgLoss = (this.avgLoss * (this.period - 1) + i) / this.period), t[0] = this.avgLoss === 0 ? this.avgGain === 0 ? 50 : 100 : 100 - 100 / (1 + this.avgGain / this.avgLoss);
 	}
-}, he = class extends R {
+}, Se = class extends V {
 	constructor() {
 		super(1), r(this, "name", "MEDPRICE"), r(this, "outputs", ["MEDPRICE"]);
 	}
 	compute(e) {
 		e[0] = (this.window.high() + this.window.low()) / 2;
 	}
-}, ge = class extends R {
+}, Ce = class extends V {
 	constructor() {
 		super(1), r(this, "name", "TYPPRICE"), r(this, "outputs", ["TYPPRICE"]);
 	}
 	compute(e) {
 		e[0] = (this.window.high() + this.window.low() + this.window.close()) / 3;
 	}
-}, _e = class extends R {
+}, we = class extends V {
 	constructor() {
 		super(1), r(this, "name", "WCLPRICE"), r(this, "outputs", ["WCLPRICE"]);
 	}
 	compute(e) {
 		e[0] = (this.window.high() + this.window.low() + this.window.close() * 2) / 4;
 	}
-}, ve = class extends R {
+}, Te = class extends V {
 	constructor() {
 		super(2), r(this, "name", "TRANGE"), r(this, "outputs", ["TRANGE"]);
 	}
@@ -1351,20 +1449,20 @@ var B = class {
 			this.fillUnready(e);
 			return;
 		}
-		e[0] = U(this.window.high(), this.window.low(), this.window.close(1));
+		e[0] = G(this.window.high(), this.window.low(), this.window.close(1));
 	}
 };
-function U(e, t, n) {
+function G(e, t, n) {
 	return Math.max(e - t, Math.abs(e - n), Math.abs(t - n));
 }
-function W(e, t) {
+function K(e, t) {
 	return e[t];
 }
 //#endregion
 //#region core/src/indicators/moving-averages.ts
-var G = class extends I {
+var Ee = class extends z {
 	constructor(e = 30, t = "close") {
-		super(), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["EMA"]), r(this, "ema", void 0), this.source = t, this.ema = new V(e), this.name = `EMA(${e})`;
+		super(), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["EMA"]), r(this, "ema", void 0), this.source = t, this.ema = new W(e), this.name = `EMA(${e})`;
 	}
 	initState() {
 		this.ema.reset();
@@ -1376,11 +1474,11 @@ var G = class extends I {
 		this.ema.restore(e);
 	}
 	step(e, t) {
-		t[0] = this.ema.push(W(e, this.source));
+		t[0] = this.ema.push(K(e, this.source));
 	}
-}, K = class extends R {
+}, De = class extends V {
 	constructor(e = 30, t = "close") {
-		super(z(e, "период WMA")), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["WMA"]), r(this, "weightSum", void 0), this.period = e, this.source = t, this.name = `WMA(${e})`, this.weightSum = e * (e + 1) / 2;
+		super(H(e, "период WMA")), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["WMA"]), r(this, "weightSum", void 0), this.period = e, this.source = t, this.name = `WMA(${e})`, this.weightSum = e * (e + 1) / 2;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1399,9 +1497,9 @@ var G = class extends I {
 			case "close": return this.window.close(e);
 		}
 	}
-}, ye = class extends R {
+}, Oe = class extends V {
 	constructor(e = 20, t = "close") {
-		super(z(e, "период TRIMA")), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["TRIMA"]), r(this, "weights", void 0), r(this, "weightSum", void 0), this.period = e, this.source = t, this.name = `TRIMA(${e})`, this.weights = new Float64Array(e);
+		super(H(e, "период TRIMA")), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["TRIMA"]), r(this, "weights", void 0), r(this, "weightSum", void 0), this.period = e, this.source = t, this.name = `TRIMA(${e})`, this.weights = new Float64Array(e);
 		let n = 0;
 		for (let t = 0; t < e; t += 1) {
 			let r = Math.min(t + 1, e - t);
@@ -1426,9 +1524,9 @@ var G = class extends I {
 			case "close": return this.window.close(e);
 		}
 	}
-}, be = class extends I {
+}, ke = class extends z {
 	constructor(e = 12, t = "close") {
-		super(), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["TEMA"]), r(this, "first", void 0), r(this, "second", void 0), r(this, "third", void 0), this.source = t, this.first = new V(e), this.second = new V(e), this.third = new V(e), this.name = `TEMA(${e})`;
+		super(), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["TEMA"]), r(this, "first", void 0), r(this, "second", void 0), r(this, "third", void 0), this.source = t, this.first = new W(e), this.second = new W(e), this.third = new W(e), this.name = `TEMA(${e})`;
 	}
 	initState() {
 		this.first.reset(), this.second.reset(), this.third.reset();
@@ -1444,7 +1542,7 @@ var G = class extends I {
 		this.first.restore(e.first), this.second.restore(e.second), this.third.restore(e.third);
 	}
 	step(e, t) {
-		let n = this.first.push(W(e, this.source));
+		let n = this.first.push(K(e, this.source));
 		if (Number.isNaN(n)) {
 			t[0] = NaN;
 			return;
@@ -1457,9 +1555,9 @@ var G = class extends I {
 		let i = this.third.push(r);
 		t[0] = Number.isNaN(i) ? NaN : 3 * n - 3 * r + i;
 	}
-}, xe = class extends I {
+}, Ae = class extends z {
 	constructor(e = 12) {
-		super(), r(this, "name", void 0), r(this, "outputs", ["ZLEMA"]), r(this, "k", void 0), r(this, "lag", void 0), r(this, "ring", void 0), r(this, "value", NaN), r(this, "seen", 0), z(e, "период ZLEMA"), this.k = 2 / (e + 1), this.lag = Math.ceil((e - 1) / 2), this.ring = new Float64Array(this.lag + 1), this.name = `ZLEMA(${e})`;
+		super(), r(this, "name", void 0), r(this, "outputs", ["ZLEMA"]), r(this, "k", void 0), r(this, "lag", void 0), r(this, "ring", void 0), r(this, "value", NaN), r(this, "seen", 0), H(e, "период ZLEMA"), this.k = 2 / (e + 1), this.lag = Math.ceil((e - 1) / 2), this.ring = new Float64Array(this.lag + 1), this.name = `ZLEMA(${e})`;
 	}
 	initState() {
 		this.value = NaN, this.seen = 0, this.ring.fill(0);
@@ -1492,18 +1590,18 @@ var G = class extends I {
 };
 function J(e, t, n = "close") {
 	switch (e) {
-		case q.Sma: return new H(t);
-		case q.Ema: return new G(t, n);
-		case q.Wma: return new K(t, n);
-		case q.Tema: return new be(t, n);
-		case q.Trima: return new ye(t, n);
+		case q.Sma: return new be(t);
+		case q.Ema: return new Ee(t, n);
+		case q.Wma: return new De(t, n);
+		case q.Tema: return new ke(t, n);
+		case q.Trima: return new Oe(t, n);
 	}
 }
 //#endregion
 //#region core/src/indicators/volatility.ts
-var Se = class extends R {
+var je = class extends V {
 	constructor(e = 2, t = "close") {
-		super(z(e, "период VAR")), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["VAR"]), this.period = e, this.source = t, this.name = `VAR(${e})`;
+		super(H(e, "период VAR")), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["VAR"]), this.period = e, this.source = t, this.name = `VAR(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1512,9 +1610,9 @@ var Se = class extends R {
 		}
 		e[0] = Y(this.window, this.period, this.source);
 	}
-}, Ce = class extends R {
+}, Me = class extends V {
 	constructor(e = 10, t = 1, n = "close") {
-		super(z(e, "период STDDEV")), r(this, "period", void 0), r(this, "deviations", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["STDDEV"]), this.period = e, this.deviations = t, this.source = n, this.name = `STDDEV(${e})`;
+		super(H(e, "период STDDEV")), r(this, "period", void 0), r(this, "deviations", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["STDDEV"]), this.period = e, this.deviations = t, this.source = n, this.name = `STDDEV(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1542,7 +1640,7 @@ function X(e, t, n) {
 		case "close": return e.close(t);
 	}
 }
-var we = class {
+var Ne = class {
 	constructor(e = {}) {
 		r(this, "name", void 0), r(this, "outputs", [
 			"UpperBand",
@@ -1555,7 +1653,7 @@ var we = class {
 			maType: q.Sma,
 			source: "close",
 			...e
-		}, z(this.options.period, "период BBANDS"), this.window = new L(this.options.period), this.ma = J(this.options.maType, this.options.period, this.options.source), this.maOut = new Float64Array(this.ma.outputs.length), this.name = `BBANDS(${this.options.period})`;
+		}, H(this.options.period, "период BBANDS"), this.window = new B(this.options.period), this.ma = J(this.options.maType, this.options.period, this.options.source), this.maOut = new Float64Array(this.ma.outputs.length), this.name = `BBANDS(${this.options.period})`;
 	}
 	reset() {
 		this.window.clear(), this.ma.reset();
@@ -1575,9 +1673,9 @@ var we = class {
 		let n = Y(this.window, this.options.period, this.options.source), r = Math.sqrt(Math.max(n, 0));
 		e[0] = t + r * this.options.deviationsUp, e[1] = t - r * this.options.deviationsDown, e[2] = t;
 	}
-}, Te = class extends I {
+}, Pe = class extends z {
 	constructor(e = 14) {
-		super(), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["ATR"]), r(this, "value", NaN), r(this, "seen", 0), r(this, "seedSum", 0), r(this, "ready", !1), r(this, "prevClose", NaN), r(this, "hasPrev", !1), this.period = e, z(e, "период ATR"), this.name = `ATR(${e})`;
+		super(), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["ATR"]), r(this, "value", NaN), r(this, "seen", 0), r(this, "seedSum", 0), r(this, "ready", !1), r(this, "prevClose", NaN), r(this, "hasPrev", !1), this.period = e, H(e, "период ATR"), this.name = `ATR(${e})`;
 	}
 	initState() {
 		this.value = NaN, this.seen = 0, this.seedSum = 0, this.ready = !1, this.prevClose = NaN, this.hasPrev = !1;
@@ -1600,7 +1698,7 @@ var we = class {
 			this.prevClose = e.close, this.hasPrev = !0, t[0] = NaN;
 			return;
 		}
-		let n = U(e.high, e.low, this.prevClose);
+		let n = G(e.high, e.low, this.prevClose);
 		if (this.prevClose = e.close, !this.ready) {
 			if (this.seedSum += n, this.seen += 1, this.seen < this.period) {
 				t[0] = NaN;
@@ -1611,9 +1709,9 @@ var we = class {
 		}
 		this.value = (this.value * (this.period - 1) + n) / this.period, t[0] = this.value;
 	}
-}, Ee = class extends I {
+}, Fe = class extends z {
 	constructor(e = 10, t = 10) {
-		super(), r(this, "rocPeriod", void 0), r(this, "name", void 0), r(this, "outputs", ["CHV"]), r(this, "ema", void 0), r(this, "ring", void 0), r(this, "seen", 0), this.rocPeriod = t, z(t, "период ROC для CHV"), this.ema = new V(e), this.ring = new Float64Array(t + 1), this.name = `CHV(${e},${t})`;
+		super(), r(this, "rocPeriod", void 0), r(this, "name", void 0), r(this, "outputs", ["CHV"]), r(this, "ema", void 0), r(this, "ring", void 0), r(this, "seen", 0), this.rocPeriod = t, H(t, "период ROC для CHV"), this.ema = new W(e), this.ring = new Float64Array(t + 1), this.name = `CHV(${e},${t})`;
 	}
 	initState() {
 		this.ema.reset(), this.ring.fill(NaN), this.seen = 0;
@@ -1638,7 +1736,7 @@ var we = class {
 		let r = this.seen >= this.rocPeriod ? this.ring[(this.seen - this.rocPeriod) % this.ring.length] : NaN;
 		this.seen += 1, t[0] = Number.isNaN(r) || r === 0 ? NaN : (n - r) / r * 100;
 	}
-}, De = class {
+}, Ie = class {
 	constructor(e = 20, t = 1, n = q.Sma, i = "close") {
 		r(this, "shiftPercent", void 0), r(this, "name", void 0), r(this, "outputs", ["Lower", "Upper"]), r(this, "ma", void 0), r(this, "maOut", void 0), this.shiftPercent = t, this.ma = J(n, e, i), this.maOut = new Float64Array(this.ma.outputs.length), this.name = `ENV(${e},${t})`;
 	}
@@ -1660,9 +1758,9 @@ var we = class {
 		let n = this.shiftPercent / 100;
 		e[0] = t * (1 - n), e[1] = t * (1 + n);
 	}
-}, Oe = class extends R {
+}, Le = class extends V {
 	constructor(e = 13, t = 13) {
-		super(Math.max(z(e, "верхний период PCH"), z(t, "нижний период PCH"))), r(this, "upperPeriod", void 0), r(this, "lowerPeriod", void 0), r(this, "name", void 0), r(this, "outputs", ["high", "low"]), this.upperPeriod = e, this.lowerPeriod = t, this.name = `PCH(${t},${e})`;
+		super(Math.max(H(e, "верхний период PCH"), H(t, "нижний период PCH"))), r(this, "upperPeriod", void 0), r(this, "lowerPeriod", void 0), r(this, "name", void 0), r(this, "outputs", ["high", "low"]), this.upperPeriod = e, this.lowerPeriod = t, this.name = `PCH(${t},${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1681,9 +1779,9 @@ var we = class {
 		}
 		e[0] = t, e[1] = n;
 	}
-}, ke = class extends R {
+}, Re = class extends V {
 	constructor(e = 10, t = "close") {
-		super(z(e, "период ROC") + 1), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["ROC"]), this.period = e, this.source = t, this.name = `ROC(${e})`;
+		super(H(e, "период ROC") + 1), r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["ROC"]), this.period = e, this.source = t, this.name = `ROC(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1693,9 +1791,9 @@ var we = class {
 		let t = X(this.window, 0, this.source), n = X(this.window, this.period, this.source);
 		e[0] = n === 0 ? NaN : (t - n) / n * 100;
 	}
-}, Ae = class {
+}, ze = class {
 	constructor(e = 20, t = "close", n = q.Sma) {
-		r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["DPO"]), r(this, "shift", void 0), r(this, "ma", void 0), r(this, "maOut", void 0), r(this, "ring", void 0), r(this, "seen", 0), this.period = e, this.source = t, z(e, "период DPO"), this.shift = Math.floor(e / 2) + 1, this.ma = J(n, e, t), this.maOut = new Float64Array(this.ma.outputs.length), this.ring = new Float64Array(this.shift + 1).fill(NaN), this.name = `DPO(${e})`;
+		r(this, "period", void 0), r(this, "source", void 0), r(this, "name", void 0), r(this, "outputs", ["DPO"]), r(this, "shift", void 0), r(this, "ma", void 0), r(this, "maOut", void 0), r(this, "ring", void 0), r(this, "seen", 0), this.period = e, this.source = t, H(e, "период DPO"), this.shift = Math.floor(e / 2) + 1, this.ma = J(n, e, t), this.maOut = new Float64Array(this.ma.outputs.length), this.ring = new Float64Array(this.shift + 1).fill(NaN), this.name = `DPO(${e})`;
 	}
 	reset() {
 		this.ma.reset(), this.ring.fill(NaN), this.seen = 0;
@@ -1715,11 +1813,11 @@ var we = class {
 			return;
 		}
 		let i = this.ring[r % this.ring.length];
-		t[0] = Number.isNaN(i) ? NaN : W(e, this.source) - i;
+		t[0] = Number.isNaN(i) ? NaN : K(e, this.source) - i;
 	}
-}, je = class extends R {
+}, Be = class extends V {
 	constructor(e = 14) {
-		super(z(e, "период CCI")), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["CCI"]), this.period = e, this.name = `CCI(${e})`;
+		super(H(e, "период CCI")), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["CCI"]), this.period = e, this.name = `CCI(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1737,20 +1835,20 @@ var we = class {
 function Z(e, t) {
 	return (e.high(t) + e.low(t) + e.close(t)) / 3;
 }
-var Me = class extends R {
+var Ve = class extends V {
 	constructor(e = 14) {
-		super(z(e, "период WILLR")), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["WILLR"]), this.period = e, this.name = `WILLR(${e})`;
+		super(H(e, "период WILLR")), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["WILLR"]), this.period = e, this.name = `WILLR(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
 			this.fillUnready(e);
 			return;
 		}
-		let { highest: t, lowest: n } = Ne(this.window, this.period), r = t - n;
+		let { highest: t, lowest: n } = He(this.window, this.period), r = t - n;
 		e[0] = r === 0 ? 0 : (t - this.window.close()) / r * -100;
 	}
 };
-function Ne(e, t) {
+function He(e, t) {
 	let n = e.high(), r = e.low();
 	for (let i = 1; i < t; i += 1) {
 		let t = e.high(i), a = e.low(i);
@@ -1761,9 +1859,9 @@ function Ne(e, t) {
 		lowest: r
 	};
 }
-var Pe = class extends R {
+var Ue = class extends V {
 	constructor(e = 14) {
-		super(z(e, "период AROON") + 1), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["AroonDown", "AroonUp"]), this.period = e, this.name = `AROON(${e})`;
+		super(H(e, "период AROON") + 1), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["AroonDown", "AroonUp"]), this.period = e, this.name = `AROON(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -1777,14 +1875,14 @@ var Pe = class extends R {
 		}
 		e[0] = (this.period - n) / this.period * 100, e[1] = (this.period - t) / this.period * 100;
 	}
-}, Fe = class {
+}, We = class {
 	constructor(e = {}) {
 		r(this, "name", void 0), r(this, "outputs", ["slowK", "slowD"]), r(this, "options", void 0), r(this, "bars", void 0), r(this, "fastKWindow", void 0), r(this, "slowKWindow", void 0), this.options = {
 			fastKPeriod: 5,
 			slowKPeriod: 3,
 			slowDPeriod: 3,
 			...e
-		}, z(this.options.fastKPeriod, "период fastK"), this.bars = new L(this.options.fastKPeriod), this.fastKWindow = new B(this.options.slowKPeriod), this.slowKWindow = new B(this.options.slowDPeriod), this.name = `STOCH(${this.options.fastKPeriod},${this.options.slowKPeriod},${this.options.slowDPeriod})`;
+		}, H(this.options.fastKPeriod, "период fastK"), this.bars = new B(this.options.fastKPeriod), this.fastKWindow = new U(this.options.slowKPeriod), this.slowKWindow = new U(this.options.slowDPeriod), this.name = `STOCH(${this.options.fastKPeriod},${this.options.slowKPeriod},${this.options.slowDPeriod})`;
 	}
 	reset() {
 		this.bars.clear(), this.fastKWindow.clear(), this.slowKWindow.clear();
@@ -1811,10 +1909,10 @@ var Pe = class extends R {
 	}
 	computeFastK() {
 		if (!this.bars.full) return NaN;
-		let { highest: e, lowest: t } = Ne(this.bars, this.options.fastKPeriod), n = e - t;
+		let { highest: e, lowest: t } = He(this.bars, this.options.fastKPeriod), n = e - t;
 		return n === 0 ? 0 : (this.bars.close() - t) / n * 100;
 	}
-}, Ie = class extends I {
+}, Ge = class extends z {
 	constructor(e = {}) {
 		super(), r(this, "name", void 0), r(this, "outputs", [
 			"MACD",
@@ -1822,7 +1920,7 @@ var Pe = class extends R {
 			"MACDHist"
 		]), r(this, "fast", void 0), r(this, "slow", void 0), r(this, "signal", void 0);
 		let { fastPeriod: t = 12, slowPeriod: n = 26, signalPeriod: i = 9 } = e, a = Math.max(t, n);
-		this.fast = new V(t, a - t), this.slow = new V(n, a - n), this.signal = new V(i), this.name = `MACD(${t},${n},${i})`;
+		this.fast = new W(t, a - t), this.slow = new W(n, a - n), this.signal = new W(i), this.name = `MACD(${t},${n},${i})`;
 	}
 	initState() {
 		this.fast.reset(), this.slow.reset(), this.signal.reset();
@@ -1866,9 +1964,9 @@ function Q(e, t, n, r) {
 		minus: 0
 	};
 }
-var Le = class extends I {
+var Ke = class extends z {
 	constructor(e) {
-		super(), r(this, "period", void 0), r(this, "sum", 0), r(this, "seen", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "ready", !1), this.period = e, z(e, "период DM");
+		super(), r(this, "period", void 0), r(this, "sum", 0), r(this, "seen", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "ready", !1), this.period = e, H(e, "период DM");
 	}
 	initState() {
 		this.sum = 0, this.seen = 0, this.prevHigh = NaN, this.prevLow = NaN, this.ready = !1;
@@ -1901,23 +1999,23 @@ var Le = class extends I {
 		}
 		this.sum = this.sum - this.sum / this.period + n, t[0] = this.sum;
 	}
-}, Re = class extends Le {
+}, qe = class extends Ke {
 	constructor(e = 14) {
 		super(e), r(this, "name", void 0), r(this, "outputs", ["MINUS_DM"]), this.name = `MINUS_DM(${e})`;
 	}
 	pick(e) {
 		return e.minus;
 	}
-}, ze = class extends Le {
+}, Je = class extends Ke {
 	constructor(e = 14) {
 		super(e), r(this, "name", void 0), r(this, "outputs", ["PLUS_DM"]), this.name = `PLUS_DM(${e})`;
 	}
 	pick(e) {
 		return e.plus;
 	}
-}, Be = class extends I {
+}, Ye = class extends z {
 	constructor(e) {
-		super(), r(this, "period", void 0), r(this, "dm", 0), r(this, "tr", 0), r(this, "seen", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "prevClose", NaN), r(this, "accumulated", !1), this.period = e, z(e, "период DI");
+		super(), r(this, "period", void 0), r(this, "dm", 0), r(this, "tr", 0), r(this, "seen", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "prevClose", NaN), r(this, "accumulated", !1), this.period = e, H(e, "период DI");
 	}
 	initState() {
 		this.dm = 0, this.tr = 0, this.seen = 0, this.prevHigh = NaN, this.prevLow = NaN, this.prevClose = NaN, this.accumulated = !1;
@@ -1941,7 +2039,7 @@ var Le = class extends I {
 			this.prevHigh = e.high, this.prevLow = e.low, this.prevClose = e.close, this.seen = 1, t[0] = NaN;
 			return;
 		}
-		let n = this.pick(Q(e.high, e.low, this.prevHigh, this.prevLow)), r = U(e.high, e.low, this.prevClose);
+		let n = this.pick(Q(e.high, e.low, this.prevHigh, this.prevLow)), r = G(e.high, e.low, this.prevClose);
 		if (this.prevHigh = e.high, this.prevLow = e.low, this.prevClose = e.close, this.seen += 1, !this.accumulated) {
 			if (this.dm += n, this.tr += r, this.seen < this.period) {
 				t[0] = NaN;
@@ -1952,14 +2050,14 @@ var Le = class extends I {
 		}
 		this.dm = this.dm - this.dm / this.period + n, this.tr = this.tr - this.tr / this.period + r, t[0] = $(this.tr) ? 0 : 100 * this.dm / this.tr;
 	}
-}, Ve = class extends Be {
+}, Xe = class extends Ye {
 	constructor(e = 14) {
 		super(e), r(this, "name", void 0), r(this, "outputs", ["MINUS_DI"]), this.name = `MINUS_DI(${e})`;
 	}
 	pick(e) {
 		return e.minus;
 	}
-}, He = class extends Be {
+}, Ze = class extends Ye {
 	constructor(e = 14) {
 		super(e), r(this, "name", void 0), r(this, "outputs", ["PLUS_DI"]), this.name = `PLUS_DI(${e})`;
 	}
@@ -1970,9 +2068,9 @@ var Le = class extends I {
 function $(e) {
 	return e > -1e-8 && e < 1e-8;
 }
-var Ue = class extends I {
+var Qe = class extends z {
 	constructor(e = 14) {
-		super(), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["ADX"]), r(this, "minusDm", 0), r(this, "plusDm", 0), r(this, "tr", 0), r(this, "adx", 0), r(this, "dxSum", 0), r(this, "seen", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "prevClose", NaN), this.period = e, z(e, "период ADX"), this.name = `ADX(${e})`;
+		super(), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["ADX"]), r(this, "minusDm", 0), r(this, "plusDm", 0), r(this, "tr", 0), r(this, "adx", 0), r(this, "dxSum", 0), r(this, "seen", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "prevClose", NaN), this.period = e, H(e, "период ADX"), this.name = `ADX(${e})`;
 	}
 	initState() {
 		this.minusDm = 0, this.plusDm = 0, this.tr = 0, this.adx = 0, this.dxSum = 0, this.seen = 0, this.prevHigh = NaN, this.prevLow = NaN, this.prevClose = NaN;
@@ -1999,7 +2097,7 @@ var Ue = class extends I {
 			this.prevHigh = e.high, this.prevLow = e.low, this.prevClose = e.close, this.seen = 1, t[0] = NaN;
 			return;
 		}
-		let n = Q(e.high, e.low, this.prevHigh, this.prevLow), r = U(e.high, e.low, this.prevClose);
+		let n = Q(e.high, e.low, this.prevHigh, this.prevLow), r = G(e.high, e.low, this.prevClose);
 		if (this.prevHigh = e.high, this.prevLow = e.low, this.prevClose = e.close, this.seen += 1, this.seen <= this.period) {
 			this.minusDm += n.minus, this.plusDm += n.plus, this.tr += r, t[0] = NaN;
 			return;
@@ -2021,7 +2119,7 @@ var Ue = class extends I {
 		let e = 100 * this.minusDm / this.tr, t = 100 * this.plusDm / this.tr, n = e + t;
 		return $(n) ? 0 : 100 * Math.abs(e - t) / n;
 	}
-}, We = class extends I {
+}, $e = class extends z {
 	constructor(e = .02, t = .2) {
 		super(), r(this, "acceleration", void 0), r(this, "maximum", void 0), r(this, "name", void 0), r(this, "outputs", ["SAR"]), r(this, "isLong", !0), r(this, "sar", NaN), r(this, "ep", NaN), r(this, "af", 0), r(this, "prevHigh", NaN), r(this, "prevLow", NaN), r(this, "newHigh", NaN), r(this, "newLow", NaN), r(this, "seen", 0), this.acceleration = e, this.maximum = t, this.name = `SAR(${e},${t})`;
 	}
@@ -2077,11 +2175,11 @@ var Ue = class extends I {
 };
 //#endregion
 //#region core/src/indicators/volume.ts
-function Ge(e) {
+function et(e) {
 	let t = e.high - e.low;
 	return t <= 0 ? 0 : (e.close - e.low - (e.high - e.close)) / t * e.volume;
 }
-var Ke = class extends I {
+var tt = class extends z {
 	constructor(...e) {
 		super(...e), r(this, "name", "AD"), r(this, "outputs", ["AD"]), r(this, "value", 0);
 	}
@@ -2099,13 +2197,13 @@ var Ke = class extends I {
 		this.value = e.value;
 	}
 	step(e, t) {
-		this.value += Ge(e), t[0] = this.value;
+		this.value += et(e), t[0] = this.value;
 	}
-}, qe = class extends I {
+}, nt = class extends z {
 	constructor(e = 3, t = 10) {
-		super(), r(this, "name", void 0), r(this, "outputs", ["ADOSC"]), r(this, "fast", void 0), r(this, "slow", void 0), r(this, "ad", 0), z(e, "быстрый период ADOSC"), z(t, "медленный период ADOSC");
+		super(), r(this, "name", void 0), r(this, "outputs", ["ADOSC"]), r(this, "fast", void 0), r(this, "slow", void 0), r(this, "ad", 0), H(e, "быстрый период ADOSC"), H(t, "медленный период ADOSC");
 		let n = Math.max(e, t);
-		this.fast = new V(e, n - 1, "first"), this.slow = new V(t, n - 1, "first"), this.name = `ADOSC(${e},${t})`;
+		this.fast = new W(e, n - 1, "first"), this.slow = new W(t, n - 1, "first"), this.name = `ADOSC(${e},${t})`;
 	}
 	initState() {
 		this.ad = 0, this.fast.reset(), this.slow.reset();
@@ -2121,11 +2219,11 @@ var Ke = class extends I {
 		this.ad = e.ad, this.fast.restore(e.fast), this.slow.restore(e.slow);
 	}
 	step(e, t) {
-		this.ad += Ge(e);
+		this.ad += et(e);
 		let n = this.fast.push(this.ad), r = this.slow.push(this.ad);
 		t[0] = Number.isNaN(n) || Number.isNaN(r) ? NaN : n - r;
 	}
-}, Je = class extends I {
+}, rt = class extends z {
 	constructor(...e) {
 		super(...e), r(this, "name", "OBV"), r(this, "outputs", ["OBV"]), r(this, "value", 0), r(this, "prevClose", NaN), r(this, "seen", 0);
 	}
@@ -2149,7 +2247,7 @@ var Ke = class extends I {
 		}
 		e.close > this.prevClose ? this.value += e.volume : e.close < this.prevClose && (this.value -= e.volume), this.prevClose = e.close, this.seen += 1, t[0] = this.value;
 	}
-}, Ye = class extends I {
+}, it = class extends z {
 	constructor(...e) {
 		super(...e), r(this, "name", "VPT"), r(this, "outputs", ["VPT"]), r(this, "value", 0), r(this, "prevClose", NaN), r(this, "seen", 0);
 	}
@@ -2173,9 +2271,9 @@ var Ke = class extends I {
 		}
 		this.prevClose !== 0 && (this.value += e.volume * (e.close - this.prevClose) / this.prevClose), this.prevClose = e.close, this.seen += 1, t[0] = this.value;
 	}
-}, Xe = class extends R {
+}, at = class extends V {
 	constructor(e = 14) {
-		super(z(e, "период MFI") + 1), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["MFI"]), this.period = e, this.name = `MFI(${e})`;
+		super(H(e, "период MFI") + 1), r(this, "period", void 0), r(this, "name", void 0), r(this, "outputs", ["MFI"]), this.period = e, this.name = `MFI(${e})`;
 	}
 	compute(e) {
 		if (!this.window.full) {
@@ -2193,9 +2291,9 @@ var Ke = class extends I {
 	typical(e) {
 		return (this.window.high(e) + this.window.low(e) + this.window.close(e)) / 3;
 	}
-}, Ze = class {
+}, ot = class {
 	constructor(e) {
-		r(this, "ema", void 0), this.ema = new V(e);
+		r(this, "ema", void 0), this.ema = new W(e);
 	}
 	reset() {
 		this.ema.reset();
@@ -2209,9 +2307,9 @@ var Ke = class extends I {
 	restore(e) {
 		this.ema.restore(e);
 	}
-}, Qe = class {
+}, st = class {
 	constructor(e) {
-		r(this, "window", void 0), this.window = new B(e);
+		r(this, "window", void 0), this.window = new U(e);
 	}
 	reset() {
 		this.window.clear();
@@ -2231,19 +2329,19 @@ var Ke = class extends I {
 		this.window.restore(t, n, r);
 	}
 };
-function $e(e, t) {
-	if (e === q.Sma) return new Qe(t);
-	if (e === q.Ema) return new Ze(t);
+function ct(e, t) {
+	if (e === q.Sma) return new st(t);
+	if (e === q.Ema) return new ot(t);
 	throw RangeError(`ELDR поддерживает только SMA и EMA, получен тип ${e}`);
 }
-var et = 2, tt = class extends I {
+var lt = 2, ut = class extends z {
 	constructor(e = 13, t = q.Ema) {
 		super(), r(this, "name", void 0), r(this, "outputs", [
 			"ELDR",
 			"Signal",
 			"Smooth",
 			"EMA"
-		]), r(this, "price", void 0), r(this, "signal", void 0), r(this, "smooth", void 0), z(e, "период ELDR"), this.price = new V(e), this.signal = $e(t, e), this.smooth = $e(t, et), this.name = `ELDR(${e})`;
+		]), r(this, "price", void 0), r(this, "signal", void 0), r(this, "smooth", void 0), H(e, "период ELDR"), this.price = new W(e), this.signal = ct(t, e), this.smooth = ct(t, lt), this.name = `ELDR(${e})`;
 	}
 	initState() {
 		this.price.reset(), this.signal.reset(), this.smooth.reset();
@@ -2269,4 +2367,4 @@ var et = 2, tt = class extends I {
 	}
 };
 //#endregion
-export { Ke as Ad, qe as Adosc, Ue as Adx, Pe as Aroon, Te as Atr, c as BarSeries, L as BarWindow, we as Bbands, y as CandleGeometry, ne as CandleSource, je as Cci, F as Chart, Ee as Chv, M as DARK_COLORS, f as DEFAULT_PRICE_SCALE_OPTIONS, m as DEFAULT_TIME_SCALE_OPTIONS, Ae as Dpo, tt as ElderRay, G as Ema, V as EmaCore, De as Envelopes, v as FrameLoop, O as HistogramGeometry, I as IncrementalIndicator, re as IndicatorSeries, D as IndicatorSource, l as Invalidation, N as LIGHT_COLORS, ie as LineGeometry, q as MaType, Ie as Macd, he as MedPrice, Xe as Mfi, Ve as MinusDi, Re as MinusDm, B as NumberWindow, Je as Obv, He as PlusDi, ze as PlusDm, Oe as PriceChannel, p as PriceScale, ke as Roc, me as Rsi, We as Sar, H as Sma, Ce as StdDev, Fe as Stoch, P as THEMES, be as Tema, T as TimeAxisFormatter, g as TimeScale, ye as Trima, ve as TrueRange, ge as TypPrice, Se as Variance, j as VolumeSource, Ye as Vpt, _e as WclPrice, Me as WilliamsR, R as WindowIndicator, K as Wma, xe as Zlema, o as attachPointerInput, x as buildCandleGeometry, k as buildHistogramGeometry, ae as buildLineGeometry, b as candleBodyWidth, pe as createChart, J as createMovingAverage, E as drawCandles, A as drawHistogram, oe as drawLine, u as layoutPanes, S as niceStep, W as priceOf, w as timeAxisFormatOptions, U as trueRange };
+export { tt as Ad, nt as Adosc, Qe as Adx, Ue as Aroon, Pe as Atr, c as BarSeries, B as BarWindow, Ne as Bbands, b as CandleGeometry, T as CandleSource, Be as Cci, M as Chart, Fe as Chv, k as DARK_COLORS, f as DEFAULT_PRICE_SCALE_OPTIONS, h as DEFAULT_TIME_SCALE_OPTIONS, ze as Dpo, ut as ElderRay, Ee as Ema, W as EmaCore, Ie as Envelopes, y as FrameLoop, ce as HistogramGeometry, z as IncrementalIndicator, E as IndicatorSeries, D as IndicatorSource, l as Invalidation, A as LIGHT_COLORS, ie as LineGeometry, q as MaType, Ge as Macd, Se as MedPrice, at as Mfi, Xe as MinusDi, qe as MinusDm, U as NumberWindow, rt as Obv, Ze as PlusDi, Je as PlusDm, Le as PriceChannel, m as PriceScale, Re as Roc, xe as Rsi, $e as Sar, be as Sma, Me as StdDev, We as Stoch, j as THEMES, ke as Tema, ne as TimeAxisFormatter, _ as TimeScale, Oe as Trima, Te as TrueRange, Ce as TypPrice, je as Variance, O as VolumeSource, it as Vpt, we as WclPrice, Ve as WilliamsR, V as WindowIndicator, De as Wma, Ae as Zlema, o as attachPointerInput, ye as barFromHlocRow, te as buildCandleGeometry, le as buildHistogramGeometry, ae as buildLineGeometry, ee as candleBodyWidth, ge as createChart, J as createMovingAverage, w as drawCandles, ue as drawHistogram, oe as drawLine, u as layoutPanes, x as niceStep, K as priceOf, _e as readIguanaResponse, R as tickersOf, C as timeAxisFormatOptions, G as trueRange };

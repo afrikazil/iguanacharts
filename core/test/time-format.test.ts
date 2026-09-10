@@ -57,6 +57,31 @@ describe('TimeAxisFormatter', () => {
         expect(formatter.format(base)).not.toBe(formatter.format(base + 5 * HOUR));
     });
 
+    it('пояс меняет подпись, не трогая данные', () => {
+        const instant = Date.UTC(2024, 0, 15, 21, 30);
+        const utc = new TimeAxisFormatter('ru-RU', 'UTC');
+        const moscow = new TimeAxisFormatter('ru-RU', 'Europe/Moscow');
+        utc.setVisibleSpan(3 * HOUR);
+        moscow.setVisibleSpan(3 * HOUR);
+
+        expect(utc.format(instant)).toBe('21:30');
+        expect(moscow.format(instant)).toBe('00:30');
+    });
+
+    it('переход на летнее время учитывается по дате бара, а не по «сейчас»', () => {
+        // Ровно это ломалось в legacy: смещение брали через
+        // new Date().getTimezoneOffset() один раз и применяли ко всей истории,
+        // поэтому бары из другой половины года уезжали на час.
+        const london = new TimeAxisFormatter('ru-RU', 'Europe/London');
+        london.setVisibleSpan(3 * HOUR);
+
+        const winter = Date.UTC(2024, 0, 15, 12, 0);
+        const summer = Date.UTC(2024, 6, 15, 12, 0);
+
+        expect(london.format(winter)).toBe('12:00');
+        expect(london.format(summer)).toBe('13:00');
+    });
+
     it('дневной диапазон даёт разные подписи для соседних дней', () => {
         const formatter = new TimeAxisFormatter('ru-RU');
         formatter.setVisibleSpan(30 * DAY);

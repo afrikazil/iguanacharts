@@ -14,7 +14,10 @@ export default defineConfig({
             name: 'IguanaChartNext',
             // umd нужен потому, что tradernet грузит график через RequireJS
             formats: ['es', 'umd'],
-            fileName: (format) => `chart.${format}.js`,
+            // ESM-выход получает .mjs: пакет не помечен "type": "module",
+            // потому что legacy-бандл рядом — браузерный скрипт, и Node
+            // иначе предупреждает при импорте iguanacharts/next.
+            fileName: (format) => (format === 'es' ? 'chart.mjs' : 'chart.umd.js'),
         },
     },
     server: { open: '/core/demo/' },

@@ -3,6 +3,12 @@
   "version": "2.3.11",
   "description": "",
   "main": "dist/iguanachart.js",
+  "exports": {
+    ".": "./dist/iguanachart.js",
+    "./next": "./dist/next/chart.mjs",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "build": "npm run build:legacy && npm run build:core",
     "build:legacy": "node build.mjs",
